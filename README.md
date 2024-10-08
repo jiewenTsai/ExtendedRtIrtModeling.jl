@@ -17,13 +17,13 @@
 
 Four main RtIrt models are provided in this package,
 
-- GibbsMlIrt,
-- GibbsRtIrt,
-- GibbsRtIrtQuantile.
+- `GibbsMlIrt`
+- `GibbsRtIrt`
+- `GibbsRtIrtQuantile`
 
 These three models default to account for covariate variables (e.g., latent regression, and latent structure). If you need only a measurement model, you can use the null model.
 
-- GibbsRtIrtNull.
+- `GibbsRtIrtNull`
 
 
 ## Installation
