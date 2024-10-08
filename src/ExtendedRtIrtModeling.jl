@@ -1291,13 +1291,15 @@ end
 export 
 	## set
 	setCond, setData, setDataMlIrt, setDataRtIrt, setDataRtIrtNull,
-	setTrueParaMlIrt, setTrueParaRtIrt
+	setTrueParaMlIrt, setTrueParaRtIrt,
 	## get
 	getBias, getRmse, getDic,
+	evaluate,
 	## sample!
 	sample!,
 	## structs
-	GibbsMlIrt, GibbsRtIrtNull, GibbsRtIrt, GibbsRtIrtQuantile
+	GibbsMlIrt, GibbsRtIrtNull, GibbsRtIrt, GibbsRtIrtQuantile,
+	InputData
 
 
 end
