@@ -13,6 +13,71 @@
 [![All Contributors](https://img.shields.io/github/all-contributors/jiewenTsai/ExtendedRtIrtModeling.jl?labelColor=5e1ec7&color=c0ffee&style=flat-square)](#contributors)
 [![BestieTemplate](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/JuliaBesties/BestieTemplate.jl/main/docs/src/assets/badge.json)](https://github.com/JuliaBesties/BestieTemplate.jl)
 
+
+
+## Installation
+
+This package isn’t registered in Julia yet, so you’ll need to download it from GitHub.
+
+```
+using Pkg
+Pkg.add("https://github.com/jiewenTsai/ExtendedRtIrtModeling.jl")
+```
+
+or 
+
+```
+]> add "https://github.com/jiewenTsai/ExtendedRtIrtModeling.jl"
+```
+
+## Usage
+
+Here is a simulation study example.
+
+```
+using ExtendedRtIrtModeling
+
+## creat a toy data
+Cond = setCond(nSubj=1000, nItem=15)
+truePara = setTrueParaMlIrt(Cond)
+Data = setDataMlIrt(Cond, truePara)
+
+## build a model and sample it!
+MCMC = GibbsMlIrt(Cond, Data=Data, truePara=truePara)
+sample!(MCMC)
+
+## check the parameter recovery
+getRmse(MCMC.truePara.b, MCMC.Post.mean.b)
+
+```
+
+If you have a data set to analyze, you can follow the following way,
+
+```
+using ExtendedRtIrtModeling
+using CSV, DataFrames
+
+## import your data set
+yourData = CSV.read("yourData.csv", DataFrame)
+Cond = setCond(qRa=0.85, qRt=0.85, nChain=3, nIter=3000)
+Data = InputData(
+    Y=Matrix(yourData[:,1:15]),
+    T=exp.(Matrix(yourData[:,16:30])),
+    X=Matrix(yourData[:,31:33])
+)
+
+## build a model and sample it!
+MCMC = GibbsRtIrtQuantile(Cond, Data=Data)
+sample!(MCMC)
+
+
+MCMC.Post.mean.Σp
+MCMC.Post.mean.β
+
+```
+
+
+
 ## How to Cite
 
 If you use ExtendedRtIrtModeling.jl in your work, please cite using the reference given in [CITATION.cff](https://github.com/jiewenTsai/ExtendedRtIrtModeling.jl/blob/main/CITATION.cff).
