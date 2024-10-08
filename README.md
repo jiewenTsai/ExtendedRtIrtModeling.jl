@@ -38,7 +38,7 @@ Pkg.add("https://github.com/jiewenTsai/ExtendedRtIrtModeling.jl")
 or 
 
 ```julia
-]> add "https://github.com/jiewenTsai/ExtendedRtIrtModeling.jl"
+] add "https://github.com/jiewenTsai/ExtendedRtIrtModeling.jl"
 ```
 
 ## Get Started
