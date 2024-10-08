@@ -13,11 +13,22 @@
 [![All Contributors](https://img.shields.io/github/all-contributors/jiewenTsai/ExtendedRtIrtModeling.jl?labelColor=5e1ec7&color=c0ffee&style=flat-square)](#contributors)
 [![BestieTemplate](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/JuliaBesties/BestieTemplate.jl/main/docs/src/assets/badge.json)](https://github.com/JuliaBesties/BestieTemplate.jl)
 
+## Overview
+
+Four main RtIrt models are provided in this package,
+
+- GibbsMlIrt,
+- GibbsRtIrt,
+- GibbsRtIrtQuantile.
+
+These three models default to account for covariate variables (e.g., latent regression, and latent structure). If you need only a measurement model, you can use the null model.
+
+- GibbsRtIrtNull.
 
 
 ## Installation
 
-This package isn’t registered in Julia yet, so you’ll need to download it from GitHub.
+This package isn’t registered in Julia yet, so you must download it from GitHub.
 
 ```
 using Pkg
