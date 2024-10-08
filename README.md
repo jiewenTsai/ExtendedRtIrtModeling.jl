@@ -32,7 +32,7 @@ This package isn’t registered in Julia yet, so you must download it from GitHu
 
 ```julia
 using Pkg
-Pkg.add("https://github.com/jiewenTsai/ExtendedRtIrtModeling.jl")
+Pkg.add(url="https://github.com/jiewenTsai/ExtendedRtIrtModeling.jl")
 ```
 
 or 
