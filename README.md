@@ -1,4 +1,4 @@
-# ExtendedRtIrtModeling
+# ExtendedRtIrtModeling.jl
 
 [![Stable Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://jiewenTsai.github.io/ExtendedRtIrtModeling.jl/stable)
 [![In development documentation](https://img.shields.io/badge/docs-dev-blue.svg)](https://jiewenTsai.github.io/ExtendedRtIrtModeling.jl/dev)
@@ -30,22 +30,22 @@ These three models default to account for covariate variables (e.g., latent regr
 
 This package isn’t registered in Julia yet, so you must download it from GitHub.
 
-```
+```julia
 using Pkg
 Pkg.add("https://github.com/jiewenTsai/ExtendedRtIrtModeling.jl")
 ```
 
 or 
 
-```
+```julia
 ]> add "https://github.com/jiewenTsai/ExtendedRtIrtModeling.jl"
 ```
 
-## Usage
+## Get Started
 
 Here is a simulation study example.
 
-```
+```julia
 using ExtendedRtIrtModeling
 
 ## creat a toy data
@@ -64,7 +64,7 @@ getRmse(MCMC.truePara.b, MCMC.Post.mean.b)
 
 If you have a data set to analyze, you can follow the following way,
 
-```
+```julia
 using ExtendedRtIrtModeling
 using CSV, DataFrames
 
