@@ -80,7 +80,7 @@ using LinearAlgebra
 using PolyaGammaSamplers
 using Distributions
 #using MCMCChains
-using Plots, StatsPlots
+using Plots
 theme(:ggplot2)
 #using ProgressLogging
 using Random
