@@ -1277,4 +1277,16 @@ function getDic(MCMC::GibbsRtIrtNull)
 end
 
 
+
+export 
+	## set
+	setCond, setData,
+	## get
+	getBias, getRmse, getDic,
+	## sample!
+	sample!,
+	## structs
+	GibbsMlIrt, GibbsRtIrtNull, GibbsRtIrt, GibbsRtIrtQuantile
+
+
 end
