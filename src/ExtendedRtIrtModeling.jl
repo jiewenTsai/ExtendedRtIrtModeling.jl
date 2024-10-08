@@ -72,7 +72,7 @@ Struct 好像要用名詞命名，還要雙駝峰 PascalCase。因此重新想�
 
 
 
-#module ExtendedRtIrtModeling
+module ExtendedRtIrtModeling
 
 using ProgressMeter
 
@@ -1277,4 +1277,4 @@ function getDic(MCMC::GibbsRtIrtNull)
 end
 
 
-#end
+end
