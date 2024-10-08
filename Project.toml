@@ -3,9 +3,6 @@ uuid = "1fd685a6-88ce-5cc9-9afc-ec285d232689"
 authors = ["Jie-Wen Tsai <tsai.jiewen@gmail.com>"]
 version = "0.1.0"
 
-[compat]
-julia = "1.6"
-
 [deps]
 #Markdown
 #InteractiveUtils
@@ -24,6 +21,7 @@ Kronecker = "2c470bb0-bcc8-11e8-3dad-c9649493f05e"
 Format = "1fa38f19-a742-5d3f-a2b9-30dd87b9d5f8"
 
 [compat]
+julia = "1.6"
 Plots = "1.40.8"
 PolyaGammaSamplers = "0.1.0"
 Distributions = "0.25.112"
