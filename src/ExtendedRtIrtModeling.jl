@@ -75,6 +75,16 @@ Struct 好像要用名詞命名，還要雙駝峰 PascalCase。因此重新想�
 module ExtendedRtIrtModeling
 
 using ProgressMeter
+#using PlutoUI
+using LinearAlgebra
+using PolyaGammaSamplers
+using Distributions
+#using MCMCChains
+using Plots, StatsPlots
+theme(:ggplot2)
+#using ProgressLogging
+using Random
+using Kronecker
 
 # ╔═╡ ea8d8c52-e6aa-44d1-8fdb-7e8f3a4778b5
 """
@@ -1280,7 +1290,8 @@ end
 
 export 
 	## set
-	setCond, setData,
+	setCond, setData, setDataMlIrt, setDataRtIrt, setDataRtIrtNull,
+	setTrueParaMlIrt, setTrueParaRtIrt
 	## get
 	getBias, getRmse, getDic,
 	## sample!
