@@ -6,6 +6,7 @@ In this note, I primarily collect the structs and functions used in QrSA model.
 
 """
 
+#using ProgressMeter
 
 """
 
@@ -52,8 +53,6 @@ Post 的部分，`summary` 和 `mean` 另外用 `MCMCChains` 做即可。硬要�
 
 """
 
-# ╔═╡ 0c3642a4-c7b3-4ded-b490-77c5b73873f1
-TableOfContents()
 
 # ╔═╡ 485d8279-ee03-4cef-974e-43c145e94126
 """
@@ -1210,13 +1209,6 @@ function sample!(MCMC::GibbsRtIrtNull, itemtype::Union{String} = "2pl")
 	return MCMC
 end
 
-# ╔═╡ 5eeb8329-0c72-49b7-9179-07df457861fc
-"""
-	- println('DIC info (using the rule, pD = D̄ - D̂)')
-	- println(pD = $(round(DIC.pD, digits=3)) and DIC = $(round(DIC.DIC, digits=3)))
-	- println('DIC is an estimate of expected predictive error (lower deviance is better).')
-
-"""
 
 # ╔═╡ e5c47428-e543-4836-8f93-57ea61aec05d
 """
