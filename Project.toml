@@ -22,3 +22,12 @@ ProgressLogging = "33c8b6b6-d38a-422a-b730-caa89a2f386c"
 ProgressMeter = "92933f4c-e287-5a05-a399-4b506db050ca"
 Kronecker = "2c470bb0-bcc8-11e8-3dad-c9649493f05e"
 Format = "1fa38f19-a742-5d3f-a2b9-30dd87b9d5f8"
+
+[compat]
+Plots = "1.40.8"
+PolyaGammaSamplers = "0.1.0"
+Distributions = "0.25.112"
+ProgressLogging = "0.1.4"
+ProgressMeter = "1.10.2"
+Kronecker = "0.5.5"
+Format = "1.3.7"
