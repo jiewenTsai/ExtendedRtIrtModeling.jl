@@ -1,0 +1,13 @@
+# Changes here will be overwritten by Copier
+AnswerStrategy: recommended
+Authors: Jie-Wen Tsai <tsai.jiewen@gmail.com>
+CodeOfConductContact: tsai.jiewen@gmail.com
+Indentation: 4
+JuliaMinVersion: '1.6'
+License: MIT
+LicenseCopyrightHolders: Jie-Wen Tsai
+PackageName: ExtendedRtIrtModeling
+PackageOwner: jiewenTsai
+PackageUUID: 1fd685a6-88ce-5cc9-9afc-ec285d232689
+_commit: v0.11.0
+_src_path: https://github.com/JuliaBesties/BestieTemplate.jl
