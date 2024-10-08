@@ -6,7 +6,7 @@ In this note, I primarily collect the structs and functions used in QrSA model.
 
 """
 
-#using ProgressMeter
+
 
 """
 
@@ -70,7 +70,11 @@ Struct 好像要用名詞命名，還要雙駝峰 PascalCase。因此重新想�
 
 """
 
+
+
 module ExtendedRtIrtModeling
+
+using ProgressMeter
 
 # ╔═╡ ea8d8c52-e6aa-44d1-8fdb-7e8f3a4778b5
 """
