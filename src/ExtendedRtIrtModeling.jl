@@ -1397,7 +1397,7 @@ function getPrecisTable(chains)
         "q05" => quantile(chains, q=[0.05])[:,2],
         "q95" => quantile(chains, q=[0.95])[:,2]
     ) |> DataFrame
-    tab3 = Dict("Sig" => [i ? "*" : "" for i in (tab1[:,2] .> tab2[:,1]) .& (tab1[:,2] .< tab2[:,2])]) |> DataFrame
+    tab3 = Dict("Sig" => [i ? "" : "*" for i in (0. .> tab2[:,1]) .& (0. .< tab2[:,2])]) |> DataFrame
 
     ## display
     pretty_table([tab1 tab2 tab3], highlighters=h1, formatters = ft_printf("%5.3f"))
