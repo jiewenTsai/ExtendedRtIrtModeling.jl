@@ -1458,7 +1458,7 @@ export
 	GibbsMlIrt, GibbsRtIrtNull, GibbsRtIrt, GibbsRtIrtQuantile,
 	InputData
 	## Miscellaneous
-	# coef, precis
+	coef, precis
 
 
 end
