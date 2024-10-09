@@ -79,12 +79,13 @@ using ProgressMeter
 using LinearAlgebra
 using PolyaGammaSamplers
 using Distributions
-#using MCMCChains
 using Plots
-theme(:ggplot2)
 #using ProgressLogging
 using Random
 using Kronecker
+using MCMCChains
+using PrettyTables
+
 
 # ╔═╡ ea8d8c52-e6aa-44d1-8fdb-7e8f3a4778b5
 """
