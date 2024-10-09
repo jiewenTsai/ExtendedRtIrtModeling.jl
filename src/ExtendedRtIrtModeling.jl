@@ -630,7 +630,7 @@ end
 # ╔═╡ 9c437f8f-d1bc-4218-9f83-5a438c8c22b6
 """
 """
-function drawItemDifficulty(Data, Para; μb₀=0., σb₀=1e+10)
+function drawItemDifficulty(Data, Para; μb₀=0., σb₀=1.)
     parV = 1 ./ (1/σb₀^2 .+  sum( Para.a'.^2 .* Para.ω, dims=1)')
     parM = parV .* ( μb₀/σb₀^2 .- Para.a' .* sum( Data.κ .- Para.θ*Para.a'.*Para.ω, dims=1) )'
     b = rand.(Normal.(parM, sqrt.(parV))) 
@@ -677,7 +677,7 @@ end
 # ╔═╡ 718c896b-5746-4ad9-9e0b-fa7af2dc56cd
 """
 """
-function drawItemIntensity(Cond,Data,Para; μξ=mean(Data.logT), σξ=1e+10)
+function drawItemIntensity(Cond,Data,Para; μξ=mean(Data.logT), σξ=1.)
     parV = 1 ./(1/σξ^2 .+ Cond.nSubj ./ Para.σt.^2)
     parM = parV .* (μξ/σξ^2 .+ sum(Data.logT .+ Para.τ, dims=1) ./ Para.σt'.^2)'
     ξ = rand.(Truncated.(Normal.(parM, sqrt.(parV)), 0, Inf))
@@ -1287,6 +1287,158 @@ function getDic(MCMC::GibbsRtIrtNull)
 end
 
 
+## New 1010
+
+"""
+	coef(MCMC)
+"""
+function coef(MCMC)
+    h1 = Highlighter(
+        f = (data, i, j) -> (data[i, j] isa AbstractFloat && data[i, j] <= 0.),
+        crayon = crayon"red"
+    )
+    dfItem =  DataFrame(
+        Item = collect(1:MCMC.Cond.nItem), 
+        a = MCMC.Post.mean.a, 
+        b = MCMC.Post.mean.b,
+        ξ = MCMC.Post.mean.ξ,
+        σt = MCMC.Post.mean.σt
+    )
+    CovIndex = ["θ", "τ"]
+    dfCov = DataFrame(
+        [CovIndex reshape(MCMC.Post.mean.Σp, 2,2)],
+        :auto
+    )
+
+    βIndex = ["β$i" for i in 0:MCMC.Cond.nFeat]
+    dfBeta = DataFrame(
+        [βIndex reshape(MCMC.Post.mean.β, MCMC.Cond.nFeat+1,2)],
+        :auto
+    )
+    DIC = getDic(MCMC)
+
+    ## display
+    println("1) Item Parameters.")
+    pretty_table(dfItem, highlighters=h1,formatters = ft_printf("%5.3f"))
+
+    println("2) Covariance of Person Parameters.")
+    pretty_table(dfCov, header=["Coef", "θ", "τ"], highlighters=h1,formatters = ft_printf("%5.3f"))
+
+    println("3) Regression Coefficients.")
+    pretty_table(dfBeta, header=["Coef", "θ", "τ"], highlighters=h1, formatters = ft_printf("%5.3f") )
+
+    println("4) Criterion.")
+    pretty_table(
+        [DIC.DIC-2*DIC.pD DIC.DIC], header=["Deviance", "DIC"], 
+        highlighters=h1,
+        formatters = ft_printf("%5.3f")
+    )
+
+end
+
+
+"""
+	coef(MCMC::GibbsMlIrt)
+"""
+function coef(MCMC::GibbsMlIrt)
+    h1 = Highlighter(
+        f = (data, i, j) -> (data[i, j] isa AbstractFloat && data[i, j] <= 0.),
+        crayon = crayon"red"
+    )
+    dfItem =  DataFrame(
+        Item = collect(1:MCMC.Cond.nItem), 
+        a = MCMC.Post.mean.a, 
+        b = MCMC.Post.mean.b,
+    )
+    
+    CovIndex = ["θ"]
+    dfCov = DataFrame([CovIndex 1.], :auto)
+    
+
+    βIndex = ["β$i" for i in 0:MCMC.Cond.nFeat]
+    dfBeta = DataFrame(
+        [βIndex reshape(MCMC.Post.mean.β, MCMC.Cond.nFeat+1,1)],
+        :auto
+    )
+
+    DIC = getDic(MCMC)
+
+    ## display
+    println("1) Item Parameters.")
+    pretty_table(dfItem, highlighters=h1, formatters = ft_printf("%5.3f"))
+
+    println("2) Covariance of Person Parameters.")
+    pretty_table(dfCov, header=["Coef", "θ"], highlighters=h1, formatters = ft_printf("%5.3f"))
+
+    println("3) Regression Coefficients.")
+    pretty_table(dfBeta, header=["Coef", "θ"], highlighters=h1, formatters = ft_printf("%5.3f"))
+
+    println("4) Criterion.")
+    pretty_table(
+        [DIC.DIC-2*DIC.pD DIC.DIC], header=["Deviance", "DIC"], 
+        highlighters=h1,
+        formatters = ft_printf("%5.3f")
+    )
+
+end
+
+
+function getPrecisTable(chains)
+    h1 = Highlighter(
+        f = (data, i, j) -> (data[i, j] isa AbstractFloat && data[i, j] <= 0.),
+        crayon = crayon"red"
+    )
+    tab1 = summarystats(chains)[:,[:mean, :std, :ess, :rhat]] |> DataFrame
+    tab2 = Dict(
+        "q05" => quantile(chains, q=[0.05])[:,2],
+        "q95" => quantile(chains, q=[0.95])[:,2]
+    ) |> DataFrame
+    tab3 = Dict("Sig" => [i ? "*" : "" for i in (tab1[:,2] .> tab2[:,1]) .& (tab1[:,2] .< tab2[:,2])]) |> DataFrame
+
+    ## display
+    pretty_table([tab1 tab2 tab3], highlighters=h1, formatters = ft_printf("%5.3f"))
+    #tab3
+end
+
+"""
+	precis(MCMC)
+"""
+function precis(MCMC)
+
+    mcmcRa = MCMC.Post.ra[(MCMC.Cond.nBurnin+1):end, (MCMC.Cond.nSubj+1):end, :]
+    chainsMcmcRa = Chains(mcmcRa, [["a$i" for i in 1:MCMC.Cond.nItem]; ["b$i" for i in 1:MCMC.Cond.nItem]])
+
+    mcmcRt = MCMC.Post.rt[(MCMC.Cond.nBurnin+1):end, (MCMC.Cond.nSubj+1):end, :]
+    chainsMcmcRt = Chains(mcmcRt, [["ξ$i" for i in 1:MCMC.Cond.nItem]; ["σt$i" for i in 1:MCMC.Cond.nItem]])
+
+    mcmcQr = MCMC.Post.qr[(MCMC.Cond.nBurnin+1):end, :, :]
+    chainsMcmcQr = Chains(mcmcQr, [vec(["β[$i,$j]" for i in 0:(MCMC.Cond.nFeat), j in 1:2]); ["Σ[1,1]","Σ[1,2]","Σ[2,1]","Σ[2,2]"]])
+
+    ## display
+    println("1) Item Response Model.")
+    getPrecisTable(chainsMcmcRa)
+    println("2) Response Time Model.")
+    getPrecisTable(chainsMcmcRt)
+    println("3) Structural Model.")
+    getPrecisTable(chainsMcmcQr)
+
+end
+
+"""
+	precis(MCMC::GibbsMlIrt)
+"""
+function precis(MCMC::GibbsMlIrt)
+
+    mcmcRa = MCMC.Post.ra[(MCMC.Cond.nBurnin+1):end, (MCMC.Cond.nSubj+1):end, :]
+    chainsMcmcRa = Chains(mcmcRa, [["a$i" for i in 1:MCMC.Cond.nItem]; ["b$i" for i in 1:MCMC.Cond.nItem]])
+
+    ## display
+    println("1) Item Response Model.")
+    getPrecisTable(chainsMcmcRa)    
+
+end
+
+
 
 export 
 	## set
@@ -1300,6 +1452,8 @@ export
 	## structs
 	GibbsMlIrt, GibbsRtIrtNull, GibbsRtIrt, GibbsRtIrtQuantile,
 	InputData
+	## Miscellaneous
+	coef, precis
 
 
 end
