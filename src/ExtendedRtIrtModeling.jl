@@ -83,7 +83,7 @@ using Plots
 #using ProgressLogging
 using Random
 using Kronecker
-using MCMCChains, MCMCDiagnosticTools
+using MCMCChains
 using PrettyTables
 
 
