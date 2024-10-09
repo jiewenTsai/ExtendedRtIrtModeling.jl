@@ -83,11 +83,11 @@ using Plots
 #using ProgressLogging
 using Random
 using Kronecker
-"""
+
 using MCMCChains
 using PrettyTables
 using DataFrames
-"""
+
 
 # ╔═╡ ea8d8c52-e6aa-44d1-8fdb-7e8f3a4778b5
 """
@@ -1291,7 +1291,7 @@ end
 
 
 ## New 1010
-"""
+
 
 """
 	coef(MCMC)
@@ -1442,7 +1442,7 @@ function precis(MCMC::GibbsMlIrt)
 
 end
 
-"""
+
 
 
 export 
