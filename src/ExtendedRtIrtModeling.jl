@@ -1290,6 +1290,7 @@ end
 
 
 ## New 1010
+"""
 
 """
 	coef(MCMC)
@@ -1440,6 +1441,7 @@ function precis(MCMC::GibbsMlIrt)
 
 end
 
+"""
 
 
 export 
@@ -1455,7 +1457,7 @@ export
 	GibbsMlIrt, GibbsRtIrtNull, GibbsRtIrt, GibbsRtIrtQuantile,
 	InputData
 	## Miscellaneous
-	coef, precis
+	# coef, precis
 
 
 end
