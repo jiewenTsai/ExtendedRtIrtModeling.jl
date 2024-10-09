@@ -1166,7 +1166,7 @@ end
 """
 	sample(MCMC::GibbsRtIrtNull)
 """
-function sample!(MCMC::GibbsRtIrtNull, itemtype::Union{String} = "2pl")
+function sample!(MCMC::GibbsRtIrtNull; itemtype::Union{String} = "2pl")
 
 	if !(itemtype in ["1pl", "2pl"])
         error("Invalid input: the item type must be '1pl' or '2pl'.")
@@ -1323,7 +1323,7 @@ function coef(MCMC)
 
     ## display
     println("1) Item Parameters.")
-    pretty_table(dfItem, highlighters=h1,formatters = ft_printf("%5.3f"))
+    pretty_table(dfItem, highlighters=h1,formatters = ft_printf("%5.3f", 2:5))
 
     println("2) Covariance of Person Parameters.")
     pretty_table(dfCov, header=["Coef", "θ", "τ"], highlighters=h1,formatters = ft_printf("%5.3f"))
@@ -1369,7 +1369,7 @@ function coef(MCMC::GibbsMlIrt)
 
     ## display
     println("1) Item Parameters.")
-    pretty_table(dfItem, highlighters=h1, formatters = ft_printf("%5.3f"))
+    pretty_table(dfItem, highlighters=h1, formatters = ft_printf("%5.3f", 2:3))
 
     println("2) Covariance of Person Parameters.")
     pretty_table(dfCov, header=["Coef", "θ"], highlighters=h1, formatters = ft_printf("%5.3f"))
