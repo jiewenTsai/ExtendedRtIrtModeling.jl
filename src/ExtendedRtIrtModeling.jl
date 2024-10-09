@@ -1456,7 +1456,7 @@ export
 	sample!,
 	## structs
 	GibbsMlIrt, GibbsRtIrtNull, GibbsRtIrt, GibbsRtIrtQuantile,
-	InputData
+	InputData,
 	## Miscellaneous
 	coef, precis
 
