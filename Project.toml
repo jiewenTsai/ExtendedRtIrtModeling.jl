@@ -17,11 +17,11 @@ ProgressLogging = "33c8b6b6-d38a-422a-b730-caa89a2f386c"
 ProgressMeter = "92933f4c-e287-5a05-a399-4b506db050ca"
 Kronecker = "2c470bb0-bcc8-11e8-3dad-c9649493f05e"
 Format = "1fa38f19-a742-5d3f-a2b9-30dd87b9d5f8"
+MCMCChains = "c7f686f2-ff18-58e9-bc7b-31028e88f75d"
+PrettyTables = "08abe8d2-0d0c-5749-adfa-8a2ac140af0d"
 
 
 [weakdeps]
-MCMCChains = "c7f686f2-ff18-58e9-bc7b-31028e88f75d"
-PrettyTables = "08abe8d2-0d0c-5749-adfa-8a2ac140af0d"
 # MCMCDiagnosticTools = "be115224-59cd-429b-ad48-344e309966f0"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
