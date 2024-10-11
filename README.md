@@ -41,8 +41,7 @@ or
 ] add ExtendedRtIrtModeling
 ```
 
-
-This package isn’t registered in Julia yet, so you must download it from GitHub.
+You can also access the newest version and download it from GitHub.
 
 ```julia
 using Pkg
