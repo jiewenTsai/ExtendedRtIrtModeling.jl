@@ -28,6 +28,20 @@ These three models default to account for covariate variables (e.g., latent regr
 
 ## Installation
 
+You can download `ExtendedRtIrtModeling` directly from julia.
+
+```julia
+using Pkg
+Pkg.add("ExtendedRtIrtModeling")
+```
+
+or 
+
+```julia
+] add ExtendedRtIrtModeling
+```
+
+
 This package isn’t registered in Julia yet, so you must download it from GitHub.
 
 ```julia
