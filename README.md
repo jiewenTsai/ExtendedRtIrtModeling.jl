@@ -72,6 +72,7 @@ sample!(MCMC)
 
 ## check the parameter recovery
 getRmse(MCMC.truePara.b, MCMC.Post.mean.b)
+getBias(MCMC.truePara.b, MCMC.Post.mean.b)
 
 ```
 
