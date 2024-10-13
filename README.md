@@ -94,6 +94,8 @@ Data = InputData(
 MCMC = GibbsRtIrtQuantile(Cond, Data=Data)
 sample!(MCMC)
 
+coef(MCMC)
+precis(MCMC)
 
 MCMC.Post.mean.Σp
 MCMC.Post.mean.β
