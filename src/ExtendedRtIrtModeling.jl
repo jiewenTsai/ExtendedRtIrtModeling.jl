@@ -832,10 +832,9 @@ function drawSubjCovariance(Cond, Data, Para)
     #s[1,2] = s[2,1] = s[1,2] ./ sqrt.(s[1,1] * s[2,2])
 	#s[1,1] = s[1,1] ./ s[1,1]
 
-
+	## parameter expansion
 	L = cholesky(s).L
-	L[2,1] = L[2,1] ./ (L[1,1] * L[2,2])
-
+	L[2,1] = L[2,1] ./ sqrt(L[1,1] * L[2,2])
 	ss = L*L'
 
     return ss
@@ -860,7 +859,12 @@ function drawSubjCovarianceNull(Cond, Data, Para)
 	#s[2,1] =  s[2,1] ./ sqrt.(s[1,1] * s[2,2])
     #ss = diagm([s[1,1].^-0.5,1.]) * s * diagm([s[1,1].^-0.5, 1.]) 
 
-    return s #Σp
+	## parameter expansion
+	L = cholesky(s).L
+	L[2,1] = L[2,1] ./ sqrt(L[1,1] * L[2,2])
+	ss = L*L'
+
+    return ss #Σp
 end
 
 # ╔═╡ 6c19bce2-70f2-43d9-9fdf-8cf1bb505ac1
