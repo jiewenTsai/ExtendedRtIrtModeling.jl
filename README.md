@@ -72,6 +72,7 @@ sample!(MCMC)
 
 ## check the parameter recovery
 getRmse(MCMC.truePara.b, MCMC.Post.mean.b)
+getBias(MCMC.truePara.b, MCMC.Post.mean.b)
 
 ```
 
@@ -94,6 +95,8 @@ Data = InputData(
 MCMC = GibbsRtIrtQuantile(Cond, Data=Data)
 sample!(MCMC)
 
+coef(MCMC)
+precis(MCMC)
 
 MCMC.Post.mean.Σp
 MCMC.Post.mean.β
