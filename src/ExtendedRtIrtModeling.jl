@@ -633,7 +633,7 @@ end
 # ╔═╡ 9c437f8f-d1bc-4218-9f83-5a438c8c22b6
 """
 """
-function drawItemDifficulty(Data, Para; μb₀=0., σb₀=5.)
+function drawItemDifficulty(Data, Para; μb₀=0., σb₀=1.)
     parV = 1 ./ (1/σb₀^2 .+  sum( Para.a'.^2 .* Para.ω, dims=1)')
     parM = parV .* ( μb₀/σb₀^2 .- Para.a' .* sum( Data.κ .- Para.θ*Para.a'.*Para.ω, dims=1) )'
     b = rand.(Normal.(parM, sqrt.(parV))) 
