@@ -127,14 +127,14 @@ mutable struct InputPara
     b::Array
 	τ::Array
 	ξ::Array
-	σt::Array
+	σ²t::Array
 	λ::Array
 	β::Array
 	Σp::Array
 	
     # 使用自動生成的構造函數，但也可以添加自定義構造函數
-	function InputPara(;ω=Float64[], θ=Float64[], a=Float64[], b=Float64[], τ=Float64[], ξ=Float64[], σt=Float64[], λ=Float64[], β=Float64[], Σp=Float64[])
-		return new(ω, θ, a, b, τ, ξ, σt, λ, β, Σp)
+	function InputPara(;ω=Float64[], θ=Float64[], a=Float64[], b=Float64[], τ=Float64[], ξ=Float64[], σ²t=Float64[], λ=Float64[], β=Float64[], Σp=Float64[])
+		return new(ω, θ, a, b, τ, ξ, σ²t, λ, β, Σp)
 	end
 end
 
@@ -275,7 +275,7 @@ mutable struct GibbsRtIrt
 			b=zeros(self.Cond.nItem), 
 			τ=randn(self.Cond.nSubj),
 			ξ = zeros(self.Cond.nItem),
-			σt = ones(self.Cond.nItem),
+			σ²t = ones(self.Cond.nItem),
 			β=randn(self.Cond.nFeat+1,2), 
 			Σp=[1. 0.5; 0.5 1.] )
 		return self
@@ -312,7 +312,7 @@ mutable struct GibbsRtIrtQuantile
 			b=zeros(self.Cond.nItem), 
 			τ=randn(self.Cond.nSubj),
 			ξ = zeros(self.Cond.nItem),
-			σt = ones(self.Cond.nItem),
+			σ²t = ones(self.Cond.nItem),
 			β=randn(self.Cond.nFeat+1,2), 
 			Σp=[1. 0.5; 0.5 1.] )
 		return self
@@ -349,7 +349,7 @@ mutable struct GibbsRtIrtNull
 			b=zeros(self.Cond.nItem), 
 			τ=randn(self.Cond.nSubj),
 			ξ=zeros(self.Cond.nItem),
-			σt=ones(self.Cond.nItem),
+			σ²t=ones(self.Cond.nItem),
 			#β=randn(self.Cond.nFeat,2), 
 			Σp=[1. 0.; 0. 1.] )
 		return self
@@ -407,7 +407,7 @@ function setTrueParaRtIrt(Cond;
 	b = [],
 	β = [],
 	ξ = [],
-	σt = [],
+	σ²t = [],
 	trueStdRa=1.,
 	trueStdRt=sqrt(0.4),
 	trueCorr=0.5
@@ -418,7 +418,7 @@ function setTrueParaRtIrt(Cond;
 	truePara.b = rand(Normal(0., 0.5), Cond.nItem)
 	truePara.β = rand(MvNormal(zeros(2), I(2)), Cond.nFeat)'
 	truePara.ξ = rand(Truncated(Normal(4., 0.2 ), 0, Inf), Cond.nItem)
-	truePara.σt = sqrt.(rand(Truncated.(Normal(0.3, 0.5), 0, Inf), Cond.nItem))
+	truePara.σ²t = rand(Truncated.(Normal(0.3, 0.5), 0, Inf), Cond.nItem)
 	trueStd = Diagonal([trueStdRa, trueStdRt])
     trueCor = [1. trueCorr; trueCorr 1.]
 	truePara.Σp = trueStd * trueCor * trueStd
@@ -518,7 +518,7 @@ function setDataRtIrt(Cond, truePara)
 
 	## rt
     μt =  truePara.ξ' .- truePara.τ 
-    trueT = rand.(Truncated.(LogNormal.(μt, truePara.σt'), 0, Inf))
+    trueT = rand.(Truncated.(LogNormal.(μt, sqrt.(truePara.σ²t')), 0, Inf))
 
 	## collect
 	trueData = InputData(Y=trueY, X=trueX, T=trueT)
@@ -559,7 +559,7 @@ function setDataRtIrtNull(Cond, truePara)
 
 	## rt
     μt =  truePara.ξ' .- truePara.τ 
-    trueT = rand.(Truncated.(LogNormal.(μt, truePara.σt'), 0, Inf))
+    trueT = rand.(Truncated.(LogNormal.(μt, sqrt.(truePara.σ²t')), 0, Inf))
 
 	## collect
 	trueData = InputData(Y=trueY, T=trueT)
@@ -654,8 +654,8 @@ function drawSubjSpeedNull(Cond,Data,Para )
 	τμ₀ = 0. #x * Para.β[:,2] 
 	τσ₀² = 1. #Para.Σp[2,2] 
 	
-    parV = 1 ./ (1 ./ τσ₀² .+ sum( 1. ./  Para.σt.^2, dims=1) )
-    parM = parV .* (τμ₀ ./ τσ₀² .+ sum( (Para.ξ' .- Data.logT) ./ Para.σt'.^2, dims=2))  
+    parV = 1 ./ (1 ./ τσ₀² .+ sum( 1. ./  Para.σ²t, dims=1) )
+    parM = parV .* (τμ₀ ./ τσ₀² .+ sum( (Para.ξ' .- Data.logT) ./ Para.σ²t', dims=2))  
     #τ = rand.(Normal.(parM, sqrt.(parV)))
     τ = rand.(Truncated.(Normal.(parM, sqrt.(parV)), -10,10))
     return τ
@@ -670,8 +670,8 @@ function drawSubjSpeed(Cond,Data,Para )
 	τμ₀ = x * Para.β[:,2] 
 	τσ₀² = Para.Σp[2,2] 
 	
-    parV = 1 ./ (1 ./ τσ₀² .+ sum( 1. ./  Para.σt.^2, dims=1) )
-    parM = parV .* (τμ₀ ./ τσ₀² .+ sum( (Para.ξ' .- Data.logT) ./ Para.σt'.^2, dims=2))  
+    parV = 1 ./ (1 ./ τσ₀² .+ sum( 1. ./  Para.σ²t, dims=1) )
+    parM = parV .* (τμ₀ ./ τσ₀² .+ sum( (Para.ξ' .- Data.logT) ./ Para.σ²t', dims=2))  
     #τ = rand.(Normal.(parM, sqrt.(parV)))
     τ = rand.(Truncated.(Normal.(parM, sqrt.(parV)), -10,10))
     return τ
@@ -681,8 +681,8 @@ end
 """
 """
 function drawItemIntensity(Cond,Data,Para; μξ=mean(Data.logT), σξ=1.)
-    parV = 1 ./(1/σξ^2 .+ Cond.nSubj ./ Para.σt.^2)
-    parM = parV .* (μξ/σξ^2 .+ sum(Data.logT .+ Para.τ, dims=1) ./ Para.σt'.^2)'
+    parV = 1 ./(1/σξ^2 .+ Cond.nSubj ./ Para.σ²t)
+    parM = parV .* (μξ/σξ^2 .+ sum(Data.logT .+ Para.τ, dims=1) ./ Para.σ²t')'
     ξ = rand.(Truncated.(Normal.(parM, sqrt.(parV)), 0, Inf))
     return ξ
 end
@@ -691,8 +691,8 @@ end
 function drawItemTimeResidual(Cond,Data,Para;δa=1e-10, δb=1e-10)
     parA = δa + Cond.nSubj/2
     parB = δb .+ sum( (Data.logT .- Para.ξ' .+ Para.τ).^2, dims=1)./2
-    σt = rand.(InverseGamma.(parA, parB'))
-    return sqrt.(σt)
+    σ²t = rand.(InverseGamma.(parA, parB'))
+    return σ²t
 end
 
 # ╔═╡ 888f5005-a524-42e6-b8a2-879418e4248a
@@ -1002,7 +1002,7 @@ function getLogLikelihoodRtIrt(Cond,Data; P=Para)
 	η = [P.θ P.τ]
     μη = x * reshape(P.β, Cond.nFeat+1, 2)
 	Ση = reshape(P.Σp, 2,2) 
-	logPdf = [sum(logpdf.(BernoulliLogit.(pr), Data.Y)) sum(logpdf.(Normal.(μt, P.σt'), Data.logT)) sum([logpdf(MvNormal(μη[i,:], Ση), η[i,:]) for i in 1:Cond.nSubj])]
+	logPdf = [sum(logpdf.(BernoulliLogit.(pr), Data.Y)) sum(logpdf.(Normal.(μt, sqrt.(P.σ²t')), Data.logT)) sum([logpdf(MvNormal(μη[i,:], Ση), η[i,:]) for i in 1:Cond.nSubj])]
 
     return sum(logPdf)
 end
@@ -1045,13 +1045,13 @@ function sample!(MCMC::GibbsRtIrtQuantile; intercept=false, itemtype::Union{Stri
 		
 		## response time part
 		Para.ξ = drawItemIntensity(Cond,Data,Para)
-	    Para.σt = drawItemTimeResidual(Cond,Data,Para)
+	    Para.σ²t = drawItemTimeResidual(Cond,Data,Para)
 		Para.τ = drawSubjSpeed(Cond,Data,Para)
 
 		## collect
 		Post.qr[m, :, l] = [vec(Para.β); vec(Para.Σp)]
 		Post.ra[m, :, l] = [Para.θ; Para.a; Para.b]
-		Post.rt[m, :, l] = [Para.τ; Para.ξ; Para.σt]
+		Post.rt[m, :, l] = [Para.τ; Para.ξ; Para.σ²t]
 		## logLike
 		Post.logLike[m, :, l] .= getLogLikelihoodRtIrt(Cond,Data,P=Para)
 	end
@@ -1071,7 +1071,7 @@ function sample!(MCMC::GibbsRtIrtQuantile; intercept=false, itemtype::Union{Stri
 		## rt
 		τ = mean(Post.rt[(Cond.nBurnin+1):end, 1:(Cond.nSubj), :], dims=(1,3)) |> vec,
 		ξ = mean(Post.rt[(Cond.nBurnin+1):end, (Cond.nSubj+1):(Cond.nSubj+Cond.nItem), :], dims=(1,3)) |> vec,
-		σt = mean(Post.rt[(Cond.nBurnin+1):end, (Cond.nSubj+Cond.nItem+1):end, :], dims=(1,3)) |> vec
+		σ²t = mean(Post.rt[(Cond.nBurnin+1):end, (Cond.nSubj+Cond.nItem+1):end, :], dims=(1,3)) |> vec
 
 	)
 
@@ -1115,7 +1115,7 @@ function sample!(MCMC::GibbsRtIrt; intercept=false, itemtype::Union{String} = "2
 		
 		## response time part
 	    Para.ξ = drawItemIntensity(Cond,Data,Para)
-	    Para.σt = drawItemTimeResidual(Cond,Data,Para)
+	    Para.σ²t = drawItemTimeResidual(Cond,Data,Para)
 		Para.τ = drawSubjSpeed(Cond,Data,Para)
 
 
@@ -1123,7 +1123,7 @@ function sample!(MCMC::GibbsRtIrt; intercept=false, itemtype::Union{String} = "2
 		## collect
 		Post.qr[m, :, l] = [vec(Para.β); vec(Para.Σp)]
 		Post.ra[m, :, l] = [Para.θ; Para.a; Para.b]
-		Post.rt[m, :, l] = [Para.τ; Para.ξ; Para.σt]
+		Post.rt[m, :, l] = [Para.τ; Para.ξ; Para.σ²t]
 		## logLike
 		Post.logLike[m, :, l] .= getLogLikelihoodRtIrt(Cond,Data,P=Para)
 	end
@@ -1143,7 +1143,7 @@ function sample!(MCMC::GibbsRtIrt; intercept=false, itemtype::Union{String} = "2
 		## rt
 		τ = mean(Post.rt[(Cond.nBurnin+1):end, 1:(Cond.nSubj), :], dims=(1,3)) |> vec,
 		ξ = mean(Post.rt[(Cond.nBurnin+1):end, (Cond.nSubj+1):(Cond.nSubj+Cond.nItem), :], dims=(1,3)) |> vec,
-		σt = mean(Post.rt[(Cond.nBurnin+1):end, (Cond.nSubj+Cond.nItem+1):end, :], dims=(1,3)) |> vec
+		σ²t = mean(Post.rt[(Cond.nBurnin+1):end, (Cond.nSubj+Cond.nItem+1):end, :], dims=(1,3)) |> vec
 
 	)
 
@@ -1160,7 +1160,7 @@ function getLogLikelihoodRtIrtNull(Cond,Data; P=Para)
 	η = [P.θ P.τ]
     μη = zeros(Cond.nSubj, 2) #x * reshape(P.β, Cond.nFeat+1, 2)
 	Ση = reshape(P.Σp, 2,2)
-	logPdf = [sum(logpdf.(BernoulliLogit.(pr), Data.Y)) sum(logpdf.(Normal.(μt, P.σt'), Data.logT)) sum([logpdf(MvNormal(μη[i,:], Ση), η[i,:]) for i in 1:Cond.nSubj])]
+	logPdf = [sum(logpdf.(BernoulliLogit.(pr), Data.Y)) sum(logpdf.(Normal.(μt, sqrt.(P.σ²t')), Data.logT)) sum([logpdf(MvNormal(μη[i,:], Ση), η[i,:]) for i in 1:Cond.nSubj])]
 
     return sum(logPdf)
 end
@@ -1199,13 +1199,13 @@ function sample!(MCMC::GibbsRtIrtNull; itemtype::Union{String} = "2pl")
 		
 		## response time part
 	    Para.ξ = drawItemIntensity(Cond,Data,Para)
-	    Para.σt = drawItemTimeResidual(Cond,Data,Para)
+	    Para.σ²t = drawItemTimeResidual(Cond,Data,Para)
 		Para.τ = drawSubjSpeedNull(Cond,Data,Para)
 
 		## collect
 		Post.qr[m, :, l] = [vec(Para.β); vec(Para.Σp)]
 		Post.ra[m, :, l] = [Para.θ; Para.a; Para.b]
-		Post.rt[m, :, l] = [Para.τ; Para.ξ; Para.σt]
+		Post.rt[m, :, l] = [Para.τ; Para.ξ; Para.σ²t]
 		## logLike
 		Post.logLike[m, :, l] .= getLogLikelihoodRtIrtNull(Cond,Data,P=Para)
 	end
@@ -1225,7 +1225,7 @@ function sample!(MCMC::GibbsRtIrtNull; itemtype::Union{String} = "2pl")
 		## rt
 		τ = mean(Post.rt[(Cond.nBurnin+1):end, 1:(Cond.nSubj), :], dims=(1,3)) |> vec,
 		ξ = mean(Post.rt[(Cond.nBurnin+1):end, (Cond.nSubj+1):(Cond.nSubj+Cond.nItem), :], dims=(1,3)) |> vec,
-		σt = mean(Post.rt[(Cond.nBurnin+1):end, (Cond.nSubj+Cond.nItem+1):end, :], dims=(1,3)) |> vec
+		σ²t = mean(Post.rt[(Cond.nBurnin+1):end, (Cond.nSubj+Cond.nItem+1):end, :], dims=(1,3)) |> vec
 
 	)
 
@@ -1310,7 +1310,7 @@ function coef(MCMC)
         a = MCMC.Post.mean.a, 
         b = MCMC.Post.mean.b,
         ξ = MCMC.Post.mean.ξ,
-        σt = MCMC.Post.mean.σt
+        σ²t = MCMC.Post.mean.σ²t
     )
     CovIndex = ["θ", "τ"]
     dfCov = DataFrame(
@@ -1417,7 +1417,7 @@ function precis(MCMC)
     chainsMcmcRa = Chains(mcmcRa, [["a$i" for i in 1:MCMC.Cond.nItem]; ["b$i" for i in 1:MCMC.Cond.nItem]])
 
     mcmcRt = MCMC.Post.rt[(MCMC.Cond.nBurnin+1):end, (MCMC.Cond.nSubj+1):end, :]
-    chainsMcmcRt = Chains(mcmcRt, [["ξ$i" for i in 1:MCMC.Cond.nItem]; ["σt$i" for i in 1:MCMC.Cond.nItem]])
+    chainsMcmcRt = Chains(mcmcRt, [["ξ$i" for i in 1:MCMC.Cond.nItem]; ["σ²t$i" for i in 1:MCMC.Cond.nItem]])
 
     mcmcQr = MCMC.Post.qr[(MCMC.Cond.nBurnin+1):end, :, :]
     chainsMcmcQr = Chains(mcmcQr, [vec(["β[$i,$j]" for i in 0:(MCMC.Cond.nFeat), j in 1:2]); ["Σ[1,1]","Σ[1,2]","Σ[2,1]","Σ[2,2]"]])
