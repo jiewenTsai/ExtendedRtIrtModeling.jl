@@ -4,7 +4,7 @@ authors = ["Jie-Wen Tsai <tsai.jiewen@gmail.com>"]
 version = "0.2.0"
 
 [deps]
-Markdown
+#Markdown
 #InteractiveUtils
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
