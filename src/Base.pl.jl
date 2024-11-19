@@ -89,6 +89,9 @@ struct InputData4R
 	T::Array
 	logT::Array
 	X::Array
+	function InputData4R(;Y=[], κ=[], T=[], logT=[], X=[])
+		return new(Y, κ, T, logT, X)
+	end
 end
 
 # ╔═╡ b9c1de8a-cd65-4a6b-8dd8-bf53279a6a44
