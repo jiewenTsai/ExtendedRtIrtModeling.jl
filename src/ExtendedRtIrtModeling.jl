@@ -57,11 +57,12 @@ export
     GibbsRtIrtCross,
     GibbsRtIrtCrossQr,
     GibbsRtIrtLatent,
-    GibbsRtIrtLatentQr
+    GibbsRtIrtLatentQr,
 	
 	## Miscellaneous
 	coef, 
     precis    
+
 
 
 end
