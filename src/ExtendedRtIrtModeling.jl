@@ -17,7 +17,8 @@ using ProgressMeter,
     Random,
     Plots,
     MCMCChains,
-    PrettyTables
+    PrettyTables,
+    PlutoUI
 
 
 #include("notebook1102.jl")
