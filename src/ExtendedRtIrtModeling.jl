@@ -19,7 +19,12 @@ using ProgressMeter,
     MCMCChains,
     PrettyTables
 
-
+using BinaryProvider,
+    ArviZ,
+    Snappy,
+    Parquet,
+    ParquetFiles, 
+    Queryverse
 
 #include("notebook1102.jl")
 
