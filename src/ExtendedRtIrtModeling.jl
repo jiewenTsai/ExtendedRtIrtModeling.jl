@@ -3,8 +3,8 @@ module ExtendedRtIrtModeling
 #include("GenInvGaussian.jl")
 #import .GenInvGaussian as ge
 
-using Markdown,
-    InteractiveUtils
+using Markdown
+    #InteractiveUtils
 
 using ProgressMeter,
 	ProgressLogging,
@@ -19,12 +19,6 @@ using ProgressMeter,
     MCMCChains,
     PrettyTables
 
-using BinaryProvider,
-    ArviZ,
-    Snappy,
-    Parquet,
-    ParquetFiles, 
-    Queryverse
 
 #include("notebook1102.jl")
 
