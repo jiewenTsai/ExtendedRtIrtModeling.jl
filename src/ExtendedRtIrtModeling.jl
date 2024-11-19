@@ -14,7 +14,9 @@ using ProgressMeter,
     Random,
     Plots,
     MCMCChains,
-    PrettyTables
+    PrettyTables,
+    Markdown,
+    InteractiveUtils
 
 
 #include("notebook1102.jl")
