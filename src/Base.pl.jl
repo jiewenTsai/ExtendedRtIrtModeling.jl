@@ -1,8 +1,8 @@
 ### A Pluto.jl notebook ###
-# v0.19.46
+# v0.20.3
 
-#using Markdown
-#using InteractiveUtils
+using Markdown
+using InteractiveUtils
 
 # ╔═╡ d56e2e5e-9f3f-11ef-1cca-5d2c402df9cc
 using PlutoUI,
@@ -75,6 +75,20 @@ struct InputData
 		logT = log.(T)
 		return new(Y, κ, T, logT, X)
 	end
+end
+
+# ╔═╡ 6d749878-1154-4e42-aafb-c4e309da31f9
+"""
+	InputData4R
+*Note.* This struct is mainly for R users.
+
+"""
+struct InputData4R
+	Y::Array
+	κ::Array
+	T::Array
+	logT::Array
+	X::Array
 end
 
 # ╔═╡ b9c1de8a-cd65-4a6b-8dd8-bf53279a6a44
@@ -513,6 +527,7 @@ version = "17.4.0+2"
 # ╠═7cb992b4-23d0-4edb-b8f6-058ccd6feb0c
 # ╠═37b7be5c-2a0e-4a81-bde2-5aecb7b557c9
 # ╠═7c35ff10-d7c7-4581-bf9d-abdec994f969
+# ╠═6d749878-1154-4e42-aafb-c4e309da31f9
 # ╠═b9c1de8a-cd65-4a6b-8dd8-bf53279a6a44
 # ╠═2c3f03ca-0f46-4771-906a-05ceef8845f0
 # ╠═5a220de1-100d-4565-9a22-be0b7d3db000
