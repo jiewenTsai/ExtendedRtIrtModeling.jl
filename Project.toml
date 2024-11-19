@@ -21,6 +21,13 @@ MCMCChains = "c7f686f2-ff18-58e9-bc7b-31028e88f75d"
 PrettyTables = "08abe8d2-0d0c-5749-adfa-8a2ac140af0d"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 
+BinaryProvider = "3fcd2e4d-7da8-5726-b6c8-926b26da20e8"
+ArviZ = "6e4b80e2-6b4d-5f57-a7d9-09b5d3c84b29"
+ExtendedRtIrtModeling = "1fd685a6-88ce-5cc9-9afc-ec285d232689"
+Snappy = "c43a5d13-8cdb-5b9b-9e83-d38a34ef150a"
+Parquet = "dfaa0f7e-ff28-582a-8e3e-2bfa6810bc40"
+ParquetFiles = "fa6d1c2b-b7f4-51c2-b725-d357bf92067a"
+Queryverse = "dce04d7c-6a88-51a6-9418-0994a3b3d5f3"
 
 [weakdeps]
 # MCMCDiagnosticTools = "be115224-59cd-429b-ad48-344e309966f0"

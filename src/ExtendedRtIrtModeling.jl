@@ -4,7 +4,7 @@ module ExtendedRtIrtModeling
 #import .GenInvGaussian as ge
 
 using Markdown,
-    #InteractiveUtils
+    InteractiveUtils
 
 using ProgressMeter,
 	ProgressLogging,
