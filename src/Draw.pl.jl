@@ -392,7 +392,7 @@ function drawSubjCoefficientsLatent(Cond,Data,Para; μβ₀=0., σβ₀=1e+10 )
     β = rand.(Normal.(vec(parM), sqrt.(vec(parV))))
 
 	
-	invΩ = inv(Symmetric(Para.Σp[2,2]))
+	invΩ = inv(Para.Σp[2,2])
 	parV = inv( 1/σβ₀^2 .+  invΩ ⊗ x'x) 
     parM = parV * ( μβ₀/σβ₀^2 .+ vec(x'* Para.ζ * invΩ') )
 
