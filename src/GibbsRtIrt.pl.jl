@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.46
+# v0.20.3
 
 #using Markdown
 #using InteractiveUtils
@@ -305,7 +305,7 @@ end
 """
 	sample(MCMC::GibbsRtIrt)
 """
-function sample!(MCMC::GibbsRtIrt; intercept=false, itemtype::Union{String} = "2pl", cov2one=false)
+function sample!(MCMC::GibbsRtIrt; intercept=false, itemtype::Union{String} = "2pl", cov2one=true)
 
 	if !(itemtype in ["1pl", "2pl"])
         error("Invalid input: the item type must be '1pl' or '2pl'.")
@@ -319,16 +319,11 @@ function sample!(MCMC::GibbsRtIrt; intercept=false, itemtype::Union{String} = "2
 	@showprogress for m in 1:Cond.nIter, l in 1:Cond.nChain	
 
 		## structural
-		#Para.λ = drawQrWeights(Cond,Data,Para)
-		Para.β = getSubjCoefficients(Cond, Data, Para )
+		Para.β = drawSubjCoefficients(Cond, Data, Para )
 		if intercept == false
 			Para.β[1,:] = [0. 0.]
 		end
-
-		Para.Σp = drawSubjCovariance(Cond, Data, Para)
-		if cov2one == true
-			Para.Σp = drawSubjCovariance2One(Cond, Data, Para)
-		end
+		Para.Σp = drawSubjCovariance(Cond, Data, Para, cov2one)
 		
 
 		## irt part
@@ -399,7 +394,7 @@ end
 """
 	sample(MCMC::GibbsRtIrtNull)
 """
-function sample!(MCMC::GibbsRtIrtNull; itemtype::Union{String} = "2pl", cov2one=false)
+function sample!(MCMC::GibbsRtIrtNull; itemtype::Union{String} = "2pl", cov2one=true)
 
 	if !(itemtype in ["1pl", "2pl"])
         error("Invalid input: the item type must be '1pl' or '2pl'.")
@@ -412,13 +407,8 @@ function sample!(MCMC::GibbsRtIrtNull; itemtype::Union{String} = "2pl", cov2one=
 
 	@showprogress for m in 1:Cond.nIter, l in 1:Cond.nChain	
 		## structural
-		#Para.λ = drawQrWeights(Cond,Data,Para)
 		Para.β = zeros(Cond.nFeat+1, 2)
-
-		Para.Σp = drawSubjCovarianceNull(Cond, Data, Para)
-		if cov2one == true
-			Para.Σp = drawSubjCovarianceNull2One(Cond, Data, Para)
-		end
+		Para.Σp = drawSubjCovarianceNull(Cond, Data, Para, cov2one)
 		
 		## irt part
 		Para.ω = drawRaPgRandomVariable(Para)
@@ -549,7 +539,23 @@ function coef(MCMC::GibbsRtIrt2)
     DIC = getDic(MCMC)
 
     ## display
-	println(">> Results for $(typeof(MCMC)).")
+	println("=="^30)
+	println(">> Model: $(typeof(MCMC)).")
+	println(">> This analysis involved $(MCMC.Cond.nSubj) subjects, $(MCMC.Cond.nItem) items, and $(MCMC.Cond.nFeat) features.")
+	println(">> $(MCMC.Cond.nChain) chains of $(MCMC.Cond.nIter) iterations each were run,")
+	if MCMC.Cond.nThin > 1
+		println(">> with the first $(MCMC.Cond.nBurnin) discarded, and every $(MCMC.Cond.nThin) iterations kept,")
+		println(">> totaling $(Int(MCMC.Cond.nChain * (MCMC.Cond.nIter - MCMC.Cond.nBurnin) / MCMC.Cond.nThin)) saved iterations.")
+	else
+		println(">> with the first $(MCMC.Cond.nBurnin) discarded, totaling $(Int(MCMC.Cond.nChain * (MCMC.Cond.nIter - MCMC.Cond.nBurnin) / MCMC.Cond.nThin)) saved iterations.")
+	end
+	
+	if typeof(MCMC) == "GibbsRtIrtQr"
+		println(">> RT Quantile: $(MCMC.Cond.qRt)")
+	end
+	println("=="^30)
+
+	
     println("1) Item Parameters.")
     pretty_table(dfItem, highlighters=h1,formatters = ft_printf("%5.3f", 2:5))
 
@@ -596,7 +602,23 @@ function coef(MCMC::GibbsMlIrt)
     DIC = getDic(MCMC)
 
     ## display
-	println(">> Results for $(typeof(MCMC)).")
+	println("=="^30)
+	println(">> Model: $(typeof(MCMC)).")
+	println(">> This analysis involved $(MCMC.Cond.nSubj) subjects, $(MCMC.Cond.nItem) items, and $(MCMC.Cond.nFeat) features.")
+	println(">> $(MCMC.Cond.nChain) chains of $(MCMC.Cond.nIter) iterations each were run,")
+	if MCMC.Cond.nThin > 1
+		println(">> with the first $(MCMC.Cond.nBurnin) discarded, and every $(MCMC.Cond.nThin) iterations kept,")
+		println(">> totaling $(Int(MCMC.Cond.nChain * (MCMC.Cond.nIter - MCMC.Cond.nBurnin) / MCMC.Cond.nThin)) saved iterations.")
+	else
+		println(">> with the first $(MCMC.Cond.nBurnin) discarded, totaling $(Int(MCMC.Cond.nChain * (MCMC.Cond.nIter - MCMC.Cond.nBurnin) / MCMC.Cond.nThin)) saved iterations.")
+	end
+	
+	if typeof(MCMC) == "GibbsRtIrtQr"
+		println(">> RT Quantile: $(MCMC.Cond.qRt)")
+	end
+	println("=="^30)
+
+	
     println("1) Item Parameters.")
     pretty_table(dfItem, highlighters=h1, formatters = ft_printf("%5.3f", 2:3))
 
@@ -631,7 +653,23 @@ function precis(MCMC::GibbsRtIrt2)
     chainsMcmcQr = Chains(mcmcQr, [vec(["β[$i,$j]" for i in 0:(MCMC.Cond.nFeat), j in 1:2]); ["Σ[1,1]","Σ[1,2]","Σ[2,1]","Σ[2,2]"]])
 
     ## display
-	println(">> Results for $(typeof(MCMC)).")
+	println("=="^30)
+	println(">> Model: $(typeof(MCMC)).")
+	println(">> This analysis involved $(MCMC.Cond.nSubj) subjects, $(MCMC.Cond.nItem) items, and $(MCMC.Cond.nFeat) features.")
+	println(">> $(MCMC.Cond.nChain) chains of $(MCMC.Cond.nIter) iterations each were run,")
+	if MCMC.Cond.nThin > 1
+		println(">> with the first $(MCMC.Cond.nBurnin) discarded, and every $(MCMC.Cond.nThin) iterations kept,")
+		println(">> totaling $(Int(MCMC.Cond.nChain * (MCMC.Cond.nIter - MCMC.Cond.nBurnin) / MCMC.Cond.nThin)) saved iterations.")
+	else
+		println(">> with the first $(MCMC.Cond.nBurnin) discarded, totaling $(Int(MCMC.Cond.nChain * (MCMC.Cond.nIter - MCMC.Cond.nBurnin) / MCMC.Cond.nThin)) saved iterations.")
+	end
+	
+	if typeof(MCMC) == "GibbsRtIrtQr"
+		println(">> RT Quantile: $(MCMC.Cond.qRt)")
+	end
+	println("=="^30)
+
+	
     println("1) Item Response Model.")
     getPrecisTable(chainsMcmcRa)
     println("2) Response Time Model.")
@@ -651,7 +689,23 @@ function precis(MCMC::GibbsMlIrt)
     chainsMcmcRa = Chains(mcmcRa, [["a$i" for i in 1:MCMC.Cond.nItem]; ["b$i" for i in 1:MCMC.Cond.nItem]])
 
     ## display
-	println(">> Results for $(typeof(MCMC)).")
+	println("=="^30)
+	println(">> Model: $(typeof(MCMC)).")
+	println(">> This analysis involved $(MCMC.Cond.nSubj) subjects, $(MCMC.Cond.nItem) items, and $(MCMC.Cond.nFeat) features.")
+	println(">> $(MCMC.Cond.nChain) chains of $(MCMC.Cond.nIter) iterations each were run,")
+	if MCMC.Cond.nThin > 1
+		println(">> with the first $(MCMC.Cond.nBurnin) discarded, and every $(MCMC.Cond.nThin) iterations kept,")
+		println(">> totaling $(Int(MCMC.Cond.nChain * (MCMC.Cond.nIter - MCMC.Cond.nBurnin) / MCMC.Cond.nThin)) saved iterations.")
+	else
+		println(">> with the first $(MCMC.Cond.nBurnin) discarded, totaling $(Int(MCMC.Cond.nChain * (MCMC.Cond.nIter - MCMC.Cond.nBurnin) / MCMC.Cond.nThin)) saved iterations.")
+	end
+	
+	if typeof(MCMC) == "GibbsRtIrtQr"
+		println(">> RT Quantile: $(MCMC.Cond.qRt)")
+	end
+	println("=="^30)
+
+	
     println("1) Item Response Model.")
     getPrecisTable(chainsMcmcRa)    
 

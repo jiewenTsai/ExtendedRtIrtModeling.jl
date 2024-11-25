@@ -3,7 +3,7 @@ module ExtendedRtIrtModeling
 #include("GenInvGaussian.jl")
 #import .GenInvGaussian as ge
 
-using Markdown
+#using Markdown
     #InteractiveUtils
 
 using ProgressMeter,

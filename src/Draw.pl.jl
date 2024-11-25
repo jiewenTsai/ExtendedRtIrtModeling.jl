@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.46
+# v0.20.3
 
 #using Markdown
 #using InteractiveUtils
@@ -55,7 +55,6 @@ function drawSubjAbility(Cond,Data,Para)
     parV = 1 ./(1 ./θσ₀² .+ sum(Para.a'.^2 .* Para.ω, dims=2))
 	parM = parV .* (θμ₀ ./θσ₀² .+ sum( Para.a' .* (Data.κ .+ Para.a' .* Para.b' .* Para.ω ), dims=2 ))
 	θ = rand.(Normal.(parM, sqrt.(parV))) 
-    #θ = rand.(Truncated.(Normal.(parM, sqrt.(parV)), -10,10))
 
 	#prodA = prod(Para.a)^(1/Cond.nItem)
 	#θNew = θ .* prodA
@@ -87,7 +86,6 @@ function drawItemDiscrimination(Data, Para; μa₀=1., σa₀=1e+10)
 	parV = 1 ./ (1/σa₀.^2 .+ sum( (Para.θ .- Para.b').^2 .*  Para.ω, dims=1))
     parM = parV .* ( μa₀/σa₀.^2  .+  sum( Data.κ .* (Para.θ .- Para.b'), dims=1) )
     a = rand.(Truncated.(Normal.(parM, sqrt.(parV)), 0, Inf)  ) 
-    #a = rand.(Normal.(parM, sqrt.(parV)) ) 
     return a'
 end
 
@@ -114,15 +112,12 @@ md"### Subject parameter - Speed"
 """
 """
 function drawSubjSpeedNull(Cond,Data,Para )
-	#x = [ones(Cond.nSubj) Data.X]
-
 	ζμ₀ = 0. #x * Para.β[:,2] 
 	ζσ₀² = 1. #Para.Σp[2,2] 
 	
     parV = 1 ./ (1 ./ ζσ₀² .+ sum( 1. ./  Para.σ²t', dims=2) )
     parM = parV .* (ζμ₀ ./ ζσ₀² .+ sum( (Para.λ' .- Data.logT) ./ Para.σ²t', dims=2))  
     ζ = rand.(Normal.(parM, sqrt.(parV)))
-    #τ = rand.(Truncated.(Normal.(parM, sqrt.(parV)), -10,10))
     return ζ
 end
 
@@ -131,14 +126,12 @@ end
 """
 function drawSubjSpeed(Cond,Data,Para )
 	x = [ones(Cond.nSubj) Data.X]
-
 	ζμ₀ = x * Para.β[:,2] 
 	ζσ₀² = Para.Σp[2,2]  
 
     parV = 1 ./ (1 ./ ζσ₀² .+ sum( 1. ./  Para.σ²t', dims=2) )
     parM = parV .* (ζμ₀ ./ ζσ₀² .+ sum( (Para.λ' .- Data.logT) ./ Para.σ²t', dims=2))  
     ζ = rand.(Normal.(parM, sqrt.(parV)))
-    #τ = rand.(Truncated.(Normal.(parM, sqrt.(parV)), -10,10))
     return ζ
 end
 
@@ -154,34 +147,24 @@ function drawSubjSpeedLatent(Cond,Data,Para )
     parV = 1 ./ (1 ./ ζσ₀² .+ sum( 1. ./  Para.σ²t', dims=2) )
     parM = parV .* (ζμ₀ ./ ζσ₀² .+ sum( (Para.λ' .- Data.logT) ./ Para.σ²t', dims=2))  
     ζ = rand.(Normal.(parM, sqrt.(parV)))
-    #ζ = rand.(Truncated.(Normal.(parM, sqrt.(parV)), -10,10))
     return ζ
 end
 
-# ╔═╡ fc41a1a7-6940-49ff-9237-78861feed17b
-md"""
-!!! info "Think More"
-	think more about this part
-
-	`ζσ₀² = Para.Σp[2,2] .* sqrt.(k2Rt * Para.ν)`
-
-"""
-
 # ╔═╡ 13fd37a1-52cb-4938-a4e4-6eba043824df
+"""
+"""
 function drawSubjSpeedLatentQr(Cond,Data,Para )
 	x = [ones(Cond.nSubj) Data.X Para.θ]
-
     k1Rt = (1 - 2 * Cond.qRt) / (Cond.qRt * (1 - Cond.qRt))
     k2Rt = 2 / (Cond.qRt * (1 - Cond.qRt))
 
 	## think more about this part
-	ζμ₀ =  0. #x * Para.β #+ k1Rt * Para.ν
-	ζσ₀² = 1. #(k2Rt * Para.ν)
+	ζμ₀ =  x * Para.β + k1Rt * Para.ν
+	ζσ₀² = Para.Σp[2,2] .* (k2Rt * Para.ν)
 	
     parV = 1 ./ (1 ./ ζσ₀² .+ sum( 1. ./  Para.σ²t', dims=2) )
     parM = parV .* (ζμ₀ ./ ζσ₀² .+ sum( (Para.λ' .- Data.logT) ./ Para.σ²t', dims=2))  
     ζ = rand.(Normal.(parM, sqrt.(parV)))
-    #ζ = rand.(Truncated.(Normal.(parM, sqrt.(parV)), -10,10))
     return ζ
 end
 
@@ -204,11 +187,8 @@ end
 function drawSubjSpeedCrossQr(Cond,Data,Para )
     k1Rt = (1 - 2 * Cond.qRt) / (Cond.qRt * (1 - Cond.qRt))
     k2Rt = 2 / (Cond.qRt * (1 - Cond.qRt))
-	#k1Rt = (1 - 2 * 0.5) / (0.5 * (1 - 0.5))
-    #k2Rt = 2 / (0.5 * (1 - 0.5))
-	eRt = Para.ν
-    k1e = k1Rt.*eRt
-	k2e =  (k2Rt .* eRt)
+    k1e = k1Rt.*Para.ν
+	k2e = k2Rt.*Para.ν
 
 	ζμ₀ = 0.
 	ζσ₀² = Para.Σp[2,2] 
@@ -216,9 +196,7 @@ function drawSubjSpeedCrossQr(Cond,Data,Para )
     parV = 1 ./ (1 ./ ζσ₀² .+ sum( 1. ./ (Para.σ²t' .* k2e ), dims=2))
 	parM = parV .* (ζμ₀ ./ ζσ₀² .+ sum( (Para.λ' .- Data.logT .- Para.θ * Para.ρ' .+ k1e) ./ (Para.σ²t' .* k2e ), dims=2))
 
-	
     ζ = rand.(Normal.(parM, sqrt.(parV)))
-    #ζ = rand.(Truncated.(Normal.(parM, sqrt.(parV)), -10,10))
     return ζ
 end
 
@@ -240,8 +218,6 @@ end
 """
 """
 function drawItemIntensityCross(Cond,Data,Para; μλ=mean(Data.logT), σλ=std(Data.logT))
-	
-    #parV = 1 ./( 1/σλ^2 .+ Cond.nSubj ./ (Para.σ²t'))
 	parV = 1 ./( 1/σλ^2 .+ sum(Cond.nSubj ./ Para.σ²t', dims=1))
     parM = parV .* (μλ/σλ^2 .+ sum( ( (Data.logT .+ Para.ζ .+ Para.θ * Para.ρ') ./ Para.σ²t'), dims=1))
     λ = rand.(Truncated.(Normal.(parM, sqrt.(parV)), 0, Inf))
@@ -254,24 +230,15 @@ end
 	drawItemIntensityCrossQr
 
 Note. 
-這邊對 λ 的修改就是，把 `1 ./sum(...)` 改成 `sum(1 ./(...))` 
-此外，在一般模式中， N/σt 是對的，但在 Qr 模式中， sum(1/σt) 才是對的？？？
-
 """
 function drawItemIntensityCrossQr(Cond,Data,Para; μλ=mean(Data.logT), σλ=std(Data.logT))
 
 	k1Rt = (1 - 2 * Cond.qRt) / (Cond.qRt * (1 - Cond.qRt))
     k2Rt = 2 / (Cond.qRt * (1 - Cond.qRt))
-	#k1Rt = (1 - 2 * 0.5) / (0.5 * (1 - 0.5))
-    #k2Rt = 2 / (0.5 * (1 - 0.5))
-	eRt = Para.ν
-    k1e = k1Rt.*eRt
-	k2e = (k2Rt .* eRt)
+    k1e = k1Rt.*Para.ν
+	k2e = k2Rt.*Para.ν
 	
-    #parV = 1 ./( 1/σλ^2 .+ Cond.nSubj ./ sum(Para.σ²t' .* k2e, dims=1 ))
 	parV = 1 ./( 1/σλ^2 .+ sum( 1. ./ (Para.σ²t' .* k2e), dims=1 ))
-	#parV = 1 ./( 1/σλ^2 .+  Cond.nSubj ./ sum(Para.σ²t', dims=1))
-    #parM = parV .* (μλ/σλ^2 .+ ( sum((Data.logT .+ Para.ζ .+ Para.θ * Para.ρ' .- k1e), dims=1) ./ sum((Para.σ²t' .* k2e), dims=1)))
 	parM = parV .* (μλ/σλ^2 .+ ( sum( (Data.logT .+ Para.ζ .+ Para.θ * Para.ρ' .- k1e) ./ (Para.σ²t' .* k2e), dims=1)))
     λ = rand.(Truncated.(Normal.(parM, sqrt.(parV)), 0, Inf))
 
@@ -293,12 +260,10 @@ end
 """
 """
 function drawItemTimeResidualCross(Cond,Data,Para;δa=1e-10, δb=1e-10)
-	
     parA = δa + Cond.nSubj/2
     parB = δb .+ sum( (Data.logT .- Para.λ' .+ Para.ζ .+ Para.θ * Para.ρ').^2, dims=1) ./2
     σ²t = rand.(InverseGamma.(parA, parB'))
-	
-	# σ²t = sum( (Data.logT .- Para.λ' .+ Para.ζ .+ Para.θ * Para.ρ').^2, dims=1)  ./ Cond.nSubj
+
     return σ²t
 end
 
@@ -308,17 +273,11 @@ end
 function drawItemTimeResidualCrossQr(Cond,Data,Para;δa=1e-10, δb=1e-10)
 	k1Rt = (1 - 2 * Cond.qRt) / (Cond.qRt * (1 - Cond.qRt))
     k2Rt = 2 / (Cond.qRt * (1 - Cond.qRt))
-	eRt = Para.ν
-    k1e = k1Rt.*eRt
-	k2e = (k2Rt .* eRt)
+    k1e = k1Rt.*Para.ν
+	k2e = k2Rt.*Para.ν
 
-	
     parA = δa + Cond.nSubj*3 /2 
 	parB = δb .+ sum( (Data.logT .- Para.λ' .+ Para.ζ .+ Para.θ * Para.ρ' .- k1e).^2 ./ (2 .* k2e), dims=1) .+ sum(eRt, dims=1)
-	#parB = δb .+ sum( (Data.logT .- Para.λ' .+ Para.ζ .+ Para.θ * Para.ρ' .- k1e).^2 ./ (k2e), dims=1) .+ sum((eRt), dims=1)
-	
-	#parB = δb .+ sum( (Data.logT .- Para.λ' .+ Para.ζ .+ Para.θ * Para.ρ' .- k1e).^2 ./ (k2e), dims=1) .+ 2*sum((eRt), dims=1)
-
     σ²t = rand.(InverseGamma.(parA, parB'))
     return σ²t
 end
@@ -333,31 +292,16 @@ md"""
 # ╔═╡ 0bd6c7df-2c47-4295-84eb-71fa21306e60
 md"### Weights"
 
-# ╔═╡ 9be16cd5-bedb-4567-b523-f28c8f09d1a3
-md"""
-!!! info "Note"
-	我認為關鍵在於 GIG 到 IG 的轉換有誤。這部分如果解決應該就OK了。
-
-"""
-
 # ╔═╡ 4e053773-b880-4a19-a5c2-9f86c74485ca
+"""
+"""
 function drawQrWeightsCrossQr(Cond,Data,Para)
-
-	
     k1Rt = (1 - 2 * Cond.qRt) / (Cond.qRt * (1 - Cond.qRt))
     k2Rt = 2 / (Cond.qRt * (1 - Cond.qRt))
 	
 	parA =  abs.(Data.logT .- Para.λ' .+ Para.ζ .+ Para.θ * Para.ρ') ./ sqrt.(Para.σ²t' .* k2Rt )
-	parB =  (sqrt.(2 * k2Rt .+ k1Rt.^2) ./ sqrt.(Para.σ²t' .* k2Rt) )
+	parB =  sqrt.(2 * k2Rt .+ k1Rt.^2) ./ sqrt.(Para.σ²t' .* k2Rt)
 
-
-	#parMu =  ( sqrt.(2 * k2Rt .+ k1Rt.^2) ./ abs.(Data.logT .- Para.λ' .+ Para.ζ .+ Para.θ * Para.ρ') )
-	#parLam =  ((2 * k2Rt .+ k1Rt.^2) ./ (Para.σ²t' .* k2Rt) )
-
-
-	
-	#sqrt.(parB ./ parA), parB
-	
 	
     ν =  1 ./ rand.(InverseGaussian.( (parB ./ parA), parB.^2  ))
 	#ν = 1 ./ rand.(InverseGaussian.( parMu, parLam  ))
@@ -369,28 +313,15 @@ function drawQrWeightsCrossQr(Cond,Data,Para)
 end
 
 # ╔═╡ 39381143-5491-4ed8-9874-805c00050740
+"""
+"""
 function drawQrWeightsLatentQr(Cond,Data,Para)
 	x = [ones(Cond.nSubj) Data.X Para.θ]
-
     k1Rt = (1 - 2 * Cond.qRt) / (Cond.qRt * (1 - Cond.qRt))
     k2Rt = 2 / (Cond.qRt * (1 - Cond.qRt))
 
-    #parRtM = sqrt.(2 * k2Rt .+ k1Rt.^2) ./ abs.(Para.ζ .- x * Para.β)
-    #parRtL = (2 * k2Rt .+ k1Rt.^2) ./ (k2Rt * 1 ./ Para.Σp[2,2])
-
-	#parMu =  sqrt.((Para.ζ .- x * Para.β).^2 ./ (Para.Σp[2,2] .* k2Rt ))
-	#parLam =  sqrt.( (2 * k2Rt .+ k1Rt.^2) ./ (Para.Σp[2,2] .* k2Rt) )
-
-    #eRa =  rand.(Truncated.(InverseGaussian.(parRaM, parRaL), 0, Inf))
-
-
-
-
 	parA =  abs.(Para.ζ .- x * Para.β) ./ sqrt.(Para.Σp[2,2] .* k2Rt)
 	parB =  sqrt.(2 * k2Rt .+ k1Rt.^2) ./ sqrt.(Para.Σp[2,2] .* k2Rt) 
-
-	#parMu = sqrt.((2 * k2Rt .+ k1Rt.^2) ./ (Para.ζ .- x * Para.β).^2)
-	#parLam = ((2 * k2Rt .+ k1Rt.^2) ./ (Para.Σp[2,2] .* k2Rt) )
 
 	ν =  1 ./ rand.(InverseGaussian.( (parB ./ parA), parB.^2  ))
     #ν =  1 ./ rand.(InverseGaussian.(parMu  , parLam ))
@@ -452,19 +383,50 @@ end
 
 # ╔═╡ a831605b-f376-491b-adff-388a7ac553df
 """
-    getSubjCoefficientsLatentQr(Cond,Data,Para; μβ₀=0., σβ₀=1e+10 ) --> β
+    drawSubjCoefficientsLatentQr(Cond,Data,Para; μβ₀=0., σβ₀=1e+10 ) --> β
 """
-function getSubjCoefficientsLatent(Cond,Data,Para; μβ₀=0., σβ₀=1e+10 )
+function drawSubjCoefficientsLatent(Cond,Data,Para; μβ₀=0., σβ₀=1e+10 )
     x = [ones(Cond.nSubj) Data.X Para.θ]
-
     parV = 1 ./ (1/σβ₀^2 .+ sum(x.^2 ./ Para.Σp[2,2], dims=1))
     parM = parV .* (μβ₀/σβ₀^2 .+ sum(x .* Para.ζ ./ Para.Σp[2,2], dims=1))   
+    β = rand.(Normal.(vec(parM), sqrt.(vec(parV))))
+
+	
+	invΩ = inv(Symmetric(Para.Σp[2,2]))
+	parV = inv( 1/σβ₀^2 .+  invΩ ⊗ x'x) 
+    parM = parV * ( μβ₀/σβ₀^2 .+ vec(x'* Para.ζ * invΩ') )
+
+	β = parM .+ cholesky(Symmetric(parV)).L * randn((Cond.nFeat+2))
+	#β = x'x \ x'Para.ζ
+
+    return β
+end
+
+# ╔═╡ e4c42f0d-a7a2-4877-bbf4-15f8fdfb310e
+md"""
+!!! info
+	這個 drawSubjCoefficientsLatentQr 的問題還沒解決，目前只是先用 get- 擋著。
+"""
+
+# ╔═╡ 44923bdc-3ac9-4e3b-887d-b1b771c2834b
+"""
+    drawSubjCoefficientsLatentQr(Cond,Data,Para; μβ₀=0., σβ₀=1e+10 ) --> β
+"""
+function drawSubjCoefficientsLatentQr(Cond,Data,Para; μβ₀=0., σβ₀=1e+10 )
+    x = [ones(Cond.nSubj) Data.X Para.θ]
+    k1Rt = (1 - 2 * Cond.qRt) / (Cond.qRt * (1 - Cond.qRt))
+    k2Rt = 2 / (Cond.qRt * (1 - Cond.qRt))
+    k1e = k1Rt.*Para.ν
+	k2e = k2Rt.*Para.ν
+
+	parV = 1. ./ (1/σβ₀^2 .+ sum(x.^2  ./ (k2e .* Para.Σp[2,2] ), dims=1))
+    parM = parV .* (μβ₀/σβ₀^2 .+ sum(x .* (Para.ζ .- k1e) ./ (k2e .* Para.Σp[2,2] ), dims=1))   
     β = rand.(Normal.(vec(parM), sqrt.(vec(parV))))
 
     return β
 end
 
-# ╔═╡ 44923bdc-3ac9-4e3b-887d-b1b771c2834b
+# ╔═╡ 2246e0f5-b367-4818-b06c-c921d84d354c
 """
     getSubjCoefficientsLatentQr(Cond,Data,Para; μβ₀=0., σβ₀=1e+10 ) --> β
 """
@@ -474,40 +436,37 @@ function getSubjCoefficientsLatentQr(Cond,Data,Para; μβ₀=0., σβ₀=1e+10 )
     k2Rt = 2 / (Cond.qRt * (1 - Cond.qRt))
 	eRt = Para.ν
     k1e = k1Rt.*eRt
-	k2e = (k2Rt .* eRt)
+	k2e = k2Rt .* eRt
+	k2eΣp = 1 ./ (Para.Σp[2,2] .* k2Rt .* eRt)
+	#k2eΣp =  inv.(Para.Σp[2,2])
 
+	β = (k2eΣp ⊗ x'x)  \ (vec(x' * (Para.ζ .- k1e) * k2eΣp'))
 	
-    #parV = 1 ./ (1/σβ₀^2 .+ sum(x.^2 ./ (k2Rt * Para.Σp[2,2] * Para.ν), dims=1))
-	parV = 1. ./ (1/σβ₀^2 .+ sum(x.^2  ./ (k2e .* Para.Σp[2,2] ), dims=1))
-    parM = parV .* (μβ₀/σβ₀^2 .+ sum(x .* (Para.ζ .- k1e) ./ (k2e .* Para.Σp[2,2] ), dims=1))   
-	#parM = parV .* (μβ₀/σβ₀^2 .+ sum(x .* (Para.ζ .- k1Rt * Para.ν) ./ (Para.Σp[2,2]), dims=1))   
-    β = rand.(Normal.(vec(parM), sqrt.(vec(parV))))
-
     return β
 end
 
 # ╔═╡ 30dd078c-b514-4130-aec8-5c04f63c4b02
-function drawSubjCorrCross(Cond,Data,Para;μρ=0., σρ=1)
-
+"""
+"""
+function drawSubjCorrCross(Cond,Data,Para;μρ=0., σρ=1e+10)
 	parV = 1 ./( 1/σρ^2 .+ sum(Para.θ.^2 ./ Para.σ²t', dims=1 ))
 	parM = parV .* (μρ/σρ^2 .+  sum( (Para.θ .* (Para.λ' .- Para.ζ .- Data.logT)) ./ Para.σ²t' , dims=1))
-	#parM = parV .* (μρ/σρ^2 .+  sum( Para.θ .* (Para.λ' .- Para.ζ .- Data.logT .+ k1e), dims=1) ./ sum(Para.σ²t' .* k2e , dims=1))
 	ρ = rand.(Normal.(parM, sqrt.(parV)))
 
     return ρ'
 end
 
 # ╔═╡ 1728fba4-1bfb-4630-a5da-41ff2df84f03
-function drawSubjCorrCrossQr(Cond,Data,Para;μρ=0., σρ=1)
+"""
+"""
+function drawSubjCorrCrossQr(Cond,Data,Para;μρ=0., σρ=1e+10)
     k1Rt = (1 - 2 * Cond.qRt) / (Cond.qRt * (1 - Cond.qRt))
     k2Rt = 2 / (Cond.qRt * (1 - Cond.qRt))
-	eRt = Para.ν
-    k1e = k1Rt.*eRt
-	k2e = (k2Rt .* eRt)
+    k1e = k1Rt.*Para.ν
+	k2e = k2Rt.*Para.ν
 
 	parV = 1 ./( 1/σρ^2 .+ sum(Para.θ.^2 ./ (Para.σ²t' .* k2e ), dims=1 ))
 	parM = parV .* (μρ/σρ^2 .+  sum( (Para.θ .* (Para.λ' .- Para.ζ .- Data.logT .+ k1e)) ./ (Para.σ²t' .* k2e) , dims=1))
-	#parM = parV .* (μρ/σρ^2 .+  sum( Para.θ .* (Para.λ' .- Para.ζ .- Data.logT .+ k1e), dims=1) ./ sum(Para.σ²t' .* k2e , dims=1))
 	ρ = rand.(Normal.(parM, sqrt.(parV)))
 
     return ρ'
@@ -521,88 +480,22 @@ md"### Σ Covariance"
     drawSubjCovariance(;θ, τ, nSubj)
     (New)
 """
-function drawSubjCovariance(Cond, Data, Para)
+function drawSubjCovariance(Cond, Data, Para, cov2one)
     η = [Para.θ Para.ζ]
-	#mη = [mean(Para.θ) mean(Para.ζ)]
     x = [ones(Cond.nSubj) Data.X]
 	e = η .- x * Para.β 
 
     ee = e'e
     s =  rand(InverseWishart(Cond.nSubj+3, ee .+ I(2)) )
-	#s =  rand(InverseWishart(Cond.nSubj+3, ee .+ I(2) ))
-	
-	#s[1,2] = s[2,1] = s[1,2] ./ sqrt(xi[1] * xi[2])
-    #s[1,2] = s[2,1] = s[1,2] ./ sqrt.(s[1,1] * s[2,2])
-	#s[1,1] = s[1,1] ./ s[1,1]
 
-	## parameter expansion
-	#L = cholesky(s).L
-	#L[2,1] = L[2,1] ./ sqrt.(L[1,1] * L[2,2])
-	#L[1,1] = 1.
-	#s = L*L'
+	if cov2one == true
+		s = diagm([s[1,1].^-0.5,1.]) * s * diagm([s[1,1].^-0.5, 1.])
+		s = diagm([1., s[2,2].^-0.5]) * s * diagm([1., s[2,2].^-0.5])
+		s[1,1] = s[2,2] =  1.
+	end
 
-	#ss = diagm([s[1,1].^-0.5,1.]) * s * diagm([s[1,1].^-0.5, 1.])
 
     return s
-end
-
-# ╔═╡ 74df51f9-9748-4b88-9b24-fbc3509f90c9
-"""
-    drawSubjCovariance(;θ, τ, nSubj)
-    (New)
-"""
-function drawSubjCovariance2One(Cond, Data, Para)
-    η = [Para.θ Para.ζ]
-	#mη = [mean(Para.θ) mean(Para.ζ)]
-    x = [ones(Cond.nSubj) Data.X]
-	e = η .- x * Para.β 
-
-    ee = e'e
-    s =  rand(InverseWishart(Cond.nSubj+3, ee .+ I(2)) )
-	#s =  rand(InverseWishart(Cond.nSubj+3, ee .+ I(2) ))
-	
-	#s[1,2] = s[2,1] = s[1,2] ./ sqrt(xi[1] * xi[2])
-    #s[1,2] = s[2,1] = s[1,2] ./ sqrt.(s[1,1] * s[2,2])
-	#s[1,1] = s[1,1] ./ s[1,1]
-
-	## parameter expansion
-	#L = cholesky(s).L
-	#L[2,1] = L[2,1] ./ sqrt.(L[1,1] * L[2,2])
-	#L[1,1] = 1.
-	#s = L*L'
-
-	ss = diagm([1., s[2,2].^-0.5]) * s * diagm([1., s[2,2].^-0.5])
-
-    return ss
-end
-
-# ╔═╡ b0462b89-72cd-4291-8cc1-086f709d52ab
-"""
-    drawSubjCovariance(;θ, τ, nSubj)
-    (New)
-"""
-function drawSubjCovarianceNull2One(Cond, Data, Para)
-    η = [Para.θ Para.ζ]
-	#meanη = [mean(Para.θ) mean(Para.τ)]
-	#e = η .- meanη
-    ee = η'η
-	#s = e'e ./ Cond.nSubj
-	s =  rand(InverseWishart(Cond.nSubj+3, ee + I(2)))
-
-	#s[1,2] = s[2,1] = s[1,2] ./ sqrt.(s[1,1] * s[2,2])
-	#s[1,1] = s[1,1] ./ s[1,1]
-	#s[1,2] =  s[1,2] ./ sqrt.(s[1,1] * s[2,2])
-	#s[2,1] =  s[2,1] ./ sqrt.(s[1,1] * s[2,2])
-    #ss = diagm([s[1,1].^-0.5,1.]) * s * diagm([s[1,1].^-0.5, 1.]) 
-
-	## parameter expansion
-	#L = cholesky(s).L
-	#L[2,1] = L[2,1] ./ sqrt(L[1,1] * L[2,2])
-	#s = L*L'
-
-	ss = diagm([1., s[2,2].^-0.5]) * s * diagm([1., s[2,2].^-0.5])
-
-    return ss #Σp
 end
 
 # ╔═╡ 346430bf-7397-426b-84a9-b322c469c89d
@@ -610,26 +503,41 @@ end
     drawSubjCovariance(;θ, τ, nSubj)
     (New)
 """
-function drawSubjCovarianceNull(Cond, Data, Para)
+function drawSubjCovarianceNull(Cond, Data, Para, cov2one)
     η = [Para.θ Para.ζ]
-	#meanη = [mean(Para.θ) mean(Para.τ)]
-	#e = η .- meanη
     ee = η'η
 	#s = e'e ./ Cond.nSubj
 	s =  rand(InverseWishart(Cond.nSubj+3, ee + I(2)))
 
-	#s[1,2] = s[2,1] = s[1,2] ./ sqrt.(s[1,1] * s[2,2])
-	#s[1,1] = s[1,1] ./ s[1,1]
-	#s[1,2] =  s[1,2] ./ sqrt.(s[1,1] * s[2,2])
-	#s[2,1] =  s[2,1] ./ sqrt.(s[1,1] * s[2,2])
-    #ss = diagm([s[1,1].^-0.5,1.]) * s * diagm([s[1,1].^-0.5, 1.]) 
-
-	## parameter expansion
-	#L = cholesky(s).L
-	#L[2,1] = L[2,1] ./ sqrt(L[1,1] * L[2,2])
-	#s = L*L'
+	if cov2one == true
+		s = diagm([s[1,1].^-0.5,1.]) * s * diagm([s[1,1].^-0.5, 1.])
+		s = diagm([1., s[2,2].^-0.5]) * s * diagm([1., s[2,2].^-0.5])
+		s[1,1] = s[2,2] =  1.
+	end
 
     return s #Σp
+end
+
+# ╔═╡ 31b22562-2177-4f23-9320-ce88686b0ddc
+"""
+    drawSubjCovariance(;θ, τ, nSubj)
+    (New)
+"""
+function drawSubjCovarianceCross(Cond, Data, Para, cov2one;  δa = 1e-10, δb = 1e-10)
+    parA = δa + Cond.nSubj/2
+    #parB = δb .+ sum(quantileCheck.(Para.ζ .- x * Para.β, Cond.qRt))/2
+    parB = δb .+ sum((Para.ζ).^2)/2
+    s =  rand(InverseGamma(parA, parB))
+    Σp = [1. 0.; 0. s]
+
+	if cov2one == true
+		Σp = diagm([Σp[1,1].^-0.5,1.]) * Σp * diagm([Σp[1,1].^-0.5, 1.])
+		Σp = diagm([1., Σp[2,2].^-0.5]) * Σp * diagm([1., Σp[2,2].^-0.5])
+		Σp[1,1] = Σp[2,2] =  1.
+	end
+
+
+    return Σp
 end
 
 # ╔═╡ a8e5c5df-8def-4498-95f8-2deab8b15366
@@ -644,6 +552,12 @@ function drawSubjCovarianceLatent(Cond, Data, Para; δa = 1e-10, δb = 1e-10)
     parB = δb .+ sum((Para.ζ .- x * Para.β).^2)/2
     s =  rand(InverseGamma(parA, parB))
     Σp = [1. 0.; 0. s]
+
+	if cov2one == true
+		Σp = diagm([Σp[1,1].^-0.5,1.]) * Σp * diagm([Σp[1,1].^-0.5, 1.])
+		Σp = diagm([1., Σp[2,2].^-0.5]) * Σp * diagm([1., Σp[2,2].^-0.5])
+		Σp[1,1] = Σp[2,2] =  1.
+	end
 
     return Σp
 end
@@ -662,14 +576,16 @@ function drawSubjCovarianceLatentQr(Cond, Data, Para; δa = 1e-10, δb = 1e-10)
 
 	
     parA = δa + Cond.nSubj*3 /2 
-    #parB = δb .+ sum(quantileCheck.(Para.ζ .- x * Para.β, Cond.qRt))/2
-	
 	parB = δb .+ sum((Para.ζ .- x * Para.β .- k1Rt * Para.ν).^2  / (2*k2e)) .+ sum(eRt)
-	
-	#parB = δb .+ sum((Para.ζ .- x * Para.β .- k1Rt * Para.ν).^2) ./2
-    
+
 	s =  rand(InverseGamma(parA, parB))
     Σp = [1. 0.; 0. s]
+
+	if cov2one == true
+		Σp = diagm([Σp[1,1].^-0.5,1.]) * Σp * diagm([Σp[1,1].^-0.5, 1.])
+		Σp = diagm([1., Σp[2,2].^-0.5]) * Σp * diagm([1., Σp[2,2].^-0.5])
+		Σp[1,1] = Σp[2,2] =  1.
+	end
 
     return Σp
 end
@@ -962,27 +878,25 @@ version = "17.4.0+2"
 # ╠═5fd59c14-e0c8-4c22-86d9-5e4b3e7e48f1
 # ╠═67ac71e7-9250-4130-95f7-351e62efd925
 # ╟─de569bf7-a393-48a3-89a1-e7b1bec148ff
-# ╠═4a977b7d-98e0-4a24-9889-db6bafcba040
-# ╠═33582955-b9e0-406f-b0ad-995b2d630236
+# ╟─4a977b7d-98e0-4a24-9889-db6bafcba040
+# ╟─33582955-b9e0-406f-b0ad-995b2d630236
 # ╟─63063231-7e9a-4d13-b294-1f4f2939e867
 # ╟─7a2c7239-a78f-4632-9905-959fb79ea50b
 # ╠═6e564b7e-313b-405d-b04c-b41bd15e7fc2
 # ╠═638123de-6b80-4a36-8b0e-f3009daa9bbe
 # ╠═334cce4b-4cfc-475c-9c92-5ecd7ec3c6b1
-# ╟─fc41a1a7-6940-49ff-9237-78861feed17b
 # ╠═13fd37a1-52cb-4938-a4e4-6eba043824df
 # ╠═3e6213f4-d6fc-40de-a71d-053740dd068b
 # ╠═1aee48af-2dbf-4100-80c0-d4cf7bb5c02c
 # ╟─1ed35050-a370-482e-8aad-ab025a6c30e4
-# ╠═0b10b047-034d-4f5d-9832-a058fb3cd8fa
-# ╠═002c3afe-12a8-480b-8bb0-b974a5dfcff4
+# ╟─0b10b047-034d-4f5d-9832-a058fb3cd8fa
+# ╟─002c3afe-12a8-480b-8bb0-b974a5dfcff4
 # ╠═923f8ff9-d0bb-4e4f-932d-0da8600b9318
-# ╠═bdf1e8e9-6c01-4760-be17-a91a24832700
-# ╠═84e5e58b-02cc-4fd0-8a60-67b393f8b8fe
+# ╟─bdf1e8e9-6c01-4760-be17-a91a24832700
+# ╟─84e5e58b-02cc-4fd0-8a60-67b393f8b8fe
 # ╠═982acb19-e7b1-4cd6-a98d-940d1a4c1565
 # ╟─5293be72-3fb3-47b1-9d9d-b5f6228605f5
 # ╟─0bd6c7df-2c47-4295-84eb-71fa21306e60
-# ╟─9be16cd5-bedb-4567-b523-f28c8f09d1a3
 # ╠═4e053773-b880-4a19-a5c2-9f86c74485ca
 # ╠═39381143-5491-4ed8-9874-805c00050740
 # ╟─a14d81ba-8d73-446c-b3be-6691da980043
@@ -990,14 +904,15 @@ version = "17.4.0+2"
 # ╠═617971fa-2469-4155-9ead-1ccb78c372f2
 # ╠═62e6e5bc-ba4f-4c81-94d5-3514b4cc0f5c
 # ╠═a831605b-f376-491b-adff-388a7ac553df
+# ╠═e4c42f0d-a7a2-4877-bbf4-15f8fdfb310e
 # ╠═44923bdc-3ac9-4e3b-887d-b1b771c2834b
-# ╠═30dd078c-b514-4130-aec8-5c04f63c4b02
-# ╠═1728fba4-1bfb-4630-a5da-41ff2df84f03
+# ╠═2246e0f5-b367-4818-b06c-c921d84d354c
+# ╟─30dd078c-b514-4130-aec8-5c04f63c4b02
+# ╟─1728fba4-1bfb-4630-a5da-41ff2df84f03
 # ╟─d3d8b090-e9d8-440d-adfd-222a5226a37f
 # ╠═902dc1c9-e1ff-4044-a01c-76141dd457d6
-# ╠═74df51f9-9748-4b88-9b24-fbc3509f90c9
-# ╠═b0462b89-72cd-4291-8cc1-086f709d52ab
 # ╠═346430bf-7397-426b-84a9-b322c469c89d
+# ╠═31b22562-2177-4f23-9320-ce88686b0ddc
 # ╠═a8e5c5df-8def-4498-95f8-2deab8b15366
 # ╠═ac6dd3a5-9b1a-40d8-bb9d-0582975dc319
 # ╟─00000000-0000-0000-0000-000000000001

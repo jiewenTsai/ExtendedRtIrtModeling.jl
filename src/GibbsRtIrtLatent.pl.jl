@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.46
+# v0.20.3
 
 #using Markdown
 #using InteractiveUtils
@@ -165,7 +165,7 @@ end
 """
 	sample!(MCMC::GibbsRtIrtLatent)
 """
-function sample!(MCMC::GibbsRtIrtLatent; intercept=false, itemtype::Union{String} = "2pl")
+function sample!(MCMC::GibbsRtIrtLatent; intercept=false, itemtype::Union{String} = "2pl", cov2one=false)
 
 	if !(itemtype in ["1pl", "2pl"])
         error("Invalid input: the item type must be '1pl' or '2pl'.")
@@ -179,12 +179,12 @@ function sample!(MCMC::GibbsRtIrtLatent; intercept=false, itemtype::Union{String
 	@showprogress for m in 1:Cond.nIter, l in 1:Cond.nChain	
 		## structural
 		#Para.ν = drawQrWeightsLatentQr(Cond,Data,Para)
-		Para.β = getSubjCoefficientsLatent(Cond,Data,Para)
+		Para.β = drawSubjCoefficientsLatent(Cond,Data,Para)
 		#Para.β = zeros(Cond.nFeat+1,2)
 		if intercept==false
 			Para.β[1] = 0.
 		end
-		Para.Σp = I(2) #drawSubjCovarianceLatent(Cond, Data, Para)
+		Para.Σp = drawSubjCovarianceLatent(Cond, Data, Para, cov2one)
 		
 		## irt part
 		Para.ω = drawRaPgRandomVariable(Para)
@@ -267,7 +267,7 @@ end
 """
 	sample!(MCMC::GibbsRtIrtLatentQr)
 """
-function sample!(MCMC::GibbsRtIrtLatentQr; intercept=false, itemtype::Union{String} = "2pl")
+function sample!(MCMC::GibbsRtIrtLatentQr; intercept=false, itemtype::Union{String} = "2pl", cov2one=false)
 
 	if !(itemtype in ["1pl", "2pl"])
         error("Invalid input: the item type must be '1pl' or '2pl'.")
@@ -286,7 +286,7 @@ function sample!(MCMC::GibbsRtIrtLatentQr; intercept=false, itemtype::Union{Stri
 		if intercept==false
 			Para.β[1] = 0.
 		end
-		Para.Σp = I(2)  #drawSubjCovarianceLatentQr(Cond, Data, Para)
+		Para.Σp = drawSubjCovarianceLatentQr(Cond, Data, Para, cov2one)
 		
 		## irt part
 		Para.ω = drawRaPgRandomVariable(Para)
@@ -394,7 +394,22 @@ function coef(MCMC::GibbsRtIrtLatent2)
 	DIC = getDic(MCMC)
 
     ## display
-	println(">> Results for $(typeof(MCMC)).")
+	println("=="^30)
+	println(">> Model: $(typeof(MCMC)).")
+	println(">> This analysis involved $(MCMC.Cond.nSubj) subjects, $(MCMC.Cond.nItem) items, and $(MCMC.Cond.nFeat) features.")
+	println(">> $(MCMC.Cond.nChain) chains of $(MCMC.Cond.nIter) iterations each were run,")
+	if MCMC.Cond.nThin > 1
+		println(">> with the first $(MCMC.Cond.nBurnin) discarded, and every $(MCMC.Cond.nThin) iterations kept,")
+		println(">> totaling $(Int(MCMC.Cond.nChain * (MCMC.Cond.nIter - MCMC.Cond.nBurnin) / MCMC.Cond.nThin)) saved iterations.")
+	else
+		println(">> with the first $(MCMC.Cond.nBurnin) discarded, totaling $(Int(MCMC.Cond.nChain * (MCMC.Cond.nIter - MCMC.Cond.nBurnin) / MCMC.Cond.nThin)) saved iterations.")
+	end
+	
+	if typeof(MCMC) == "GibbsRtIrtLatentQr"
+		println(">> RT Quantile: $(MCMC.Cond.qRt)")
+	end
+	println("=="^30)
+	
     println("1) Item Parameters.")
     pretty_table(dfItem, highlighters=h1,formatters = ft_printf("%5.3f", 2:5))
 
@@ -430,7 +445,23 @@ function precis(MCMC::GibbsRtIrtLatent2)
     chainsMcmcQr = Chains(mcmcQr, [["β$i" for i in 0:(MCMC.Cond.nFeat)]; "ρ"; ["Σ[1,1]","Σ[1,2]","Σ[2,1]","Σ[2,2]"]])
 
     ## display
-	println(">> Results for $(typeof(MCMC)).")
+	println("=="^30)
+	println(">> Model: $(typeof(MCMC)).")
+	println(">> This analysis involved $(MCMC.Cond.nSubj) subjects, $(MCMC.Cond.nItem) items, and $(MCMC.Cond.nFeat) features.")
+	println(">> $(MCMC.Cond.nChain) chains of $(MCMC.Cond.nIter) iterations each were run,")
+	if MCMC.Cond.nThin > 1
+		println(">> with the first $(MCMC.Cond.nBurnin) discarded, and every $(MCMC.Cond.nThin) iterations kept,")
+		println(">> totaling $(Int(MCMC.Cond.nChain * (MCMC.Cond.nIter - MCMC.Cond.nBurnin) / MCMC.Cond.nThin)) saved iterations.")
+	else
+		println(">> with the first $(MCMC.Cond.nBurnin) discarded, totaling $(Int(MCMC.Cond.nChain * (MCMC.Cond.nIter - MCMC.Cond.nBurnin) / MCMC.Cond.nThin)) saved iterations.")
+	end
+	
+	if typeof(MCMC) == "GibbsRtIrtLatentQr"
+		println(">> RT Quantile: $(MCMC.Cond.qRt)")
+	end
+	println("=="^30)
+
+	
     println("1) Item Response Model.")
     getPrecisTable(chainsMcmcRa)
     println("2) Response Time Model.")

@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.46
+# v0.20.3
 
 #using Markdown
 #using InteractiveUtils
@@ -173,7 +173,7 @@ end
 """
 	sample!(MCMC::GibbsRtIrtCross)
 """
-function sample!(MCMC::GibbsRtIrtCross; itemtype::Union{String} = "2pl")
+function sample!(MCMC::GibbsRtIrtCross; itemtype::Union{String} = "2pl", cov2one=true)
 
 	if !(itemtype in ["1pl", "2pl"])
         error("Invalid input: the item type must be '1pl' or '2pl'.")
@@ -188,7 +188,7 @@ function sample!(MCMC::GibbsRtIrtCross; itemtype::Union{String} = "2pl")
 		## structural
 		#Para.ν = drawQrWeightsCrossQr(Cond,Data,Para)
         Para.ρ = drawSubjCorrCross(Cond,Data,Para)
-		Para.Σp = I(2) #drawSubjCovariance(Cond, Data, Para)
+		Para.Σp = drawSubjCovarianceCross(Cond, Data, Para, cov2one)
 		
 		## irt part
 		Para.ω = drawRaPgRandomVariable(Para)
@@ -199,8 +199,6 @@ function sample!(MCMC::GibbsRtIrtCross; itemtype::Union{String} = "2pl")
 		end
 		Para.θ = drawSubjAbilityNull(Cond, Data, Para)
 
-		
-		
 		## response time part
 		Para.λ = drawItemIntensityCross(Cond,Data,Para)
 	    Para.σ²t = drawItemTimeResidualCross(Cond,Data,Para)
@@ -211,7 +209,6 @@ function sample!(MCMC::GibbsRtIrtCross; itemtype::Union{String} = "2pl")
 		Post.ra[m, :, l] = [Para.θ; Para.a; Para.b]
 		Post.rt[m, :, l] = [Para.ζ; Para.λ; Para.σ²t]
 		## logLike
-		#Post.logLike[m, :, l] .= getLogLikelihoodRtIrtCross(Cond,Data,P=Para)
 		Post.logLike[m, :, l] .= getLogLikelihoodRtIrtCross(Cond,Data,P=Para)
 	end
 
@@ -246,7 +243,7 @@ function getLogLikelihoodRtIrtCrossQr(Cond,Data; P=Para)
     k2Rt = 2 / (Cond.qRt * (1 - Cond.qRt))
 	eRt = reshape(P.ν, Cond.nSubj, Cond.nItem)
     k1e = k1Rt.*eRt
-	k2e = (k2Rt .* eRt)
+	k2e = k2Rt.*eRt
 	#x = [ones(Cond.nSubj) Data.X]
     pr = P.a' .* (P.θ .- P.b')
     μt = P.λ' .- P.ζ .- P.θ * P.ρ' .+ k1e
@@ -263,7 +260,7 @@ end
 """
 	sample!(MCMC::GibbsRtIrtCrossQr)
 """
-function sample!(MCMC::GibbsRtIrtCrossQr; itemtype::Union{String} = "2pl")
+function sample!(MCMC::GibbsRtIrtCrossQr; itemtype::Union{String} = "2pl", cov2one=true)
 
 	if !(itemtype in ["1pl", "2pl"])
         error("Invalid input: the item type must be '1pl' or '2pl'.")
@@ -278,7 +275,7 @@ function sample!(MCMC::GibbsRtIrtCrossQr; itemtype::Union{String} = "2pl")
 		## structural
 		Para.ν = drawQrWeightsCrossQr(Cond,Data,Para)
         Para.ρ = drawSubjCorrCrossQr(Cond,Data,Para)
-		Para.Σp = I(2) #drawSubjCovariance(Cond, Data, Para)
+		Para.Σp = drawSubjCovarianceCross(Cond, Data, Para, cov2one)
 		
 		## irt part
 		Para.ω = drawRaPgRandomVariable(Para)
@@ -289,8 +286,6 @@ function sample!(MCMC::GibbsRtIrtCrossQr; itemtype::Union{String} = "2pl")
 		end
 		Para.θ = drawSubjAbilityNull(Cond, Data, Para)
 
-		
-		
 		## response time part
 		Para.λ = drawItemIntensityCrossQr(Cond,Data,Para)
 	    Para.σ²t = drawItemTimeResidualCrossQr(Cond,Data,Para)
@@ -302,7 +297,6 @@ function sample!(MCMC::GibbsRtIrtCrossQr; itemtype::Union{String} = "2pl")
 		Post.rt[m, :, l] = [Para.ζ; Para.λ; Para.σ²t]
 		## logLike
 		Post.logLike[m, :, l] .= getLogLikelihoodRtIrtCrossQr(Cond,Data,P=Para)
-		#Post.logLike[m, :, l] .= getLogLikelihoodRtIrt(Cond,Data,P=Para)
 	end
 
 	## summarystats
@@ -387,7 +381,23 @@ function coef(MCMC::GibbsRtIrtCross2)
 	DIC = getDic(MCMC)
 
     ## display
-	println(">> Results for $(typeof(MCMC)).")
+	println("=="^30)
+	println(">> Model: $(typeof(MCMC)).")
+	println(">> This analysis involved $(MCMC.Cond.nSubj) subjects, $(MCMC.Cond.nItem) items, and $(MCMC.Cond.nFeat) features.")
+	println(">> $(MCMC.Cond.nChain) chains of $(MCMC.Cond.nIter) iterations each were run,")
+	if MCMC.Cond.nThin > 1
+		println(">> with the first $(MCMC.Cond.nBurnin) discarded, and every $(MCMC.Cond.nThin) iterations kept,")
+		println(">> totaling $(Int(MCMC.Cond.nChain * (MCMC.Cond.nIter - MCMC.Cond.nBurnin) / MCMC.Cond.nThin)) saved iterations.")
+	else
+		println(">> with the first $(MCMC.Cond.nBurnin) discarded, totaling $(Int(MCMC.Cond.nChain * (MCMC.Cond.nIter - MCMC.Cond.nBurnin) / MCMC.Cond.nThin)) saved iterations.")
+	end
+	
+	if typeof(MCMC) == "GibbsRtIrtCrossQr"
+		println(">> RT Quantile: $(MCMC.Cond.qRt)")
+	end
+	println("=="^30)
+
+	
     println("1) Item Parameters.")
     pretty_table(dfItem, highlighters=h1,formatters = ft_printf("%5.3f", 2:5))
 
@@ -423,7 +433,23 @@ function precis(MCMC::GibbsRtIrtCross2)
     chainsMcmcQr = Chains(mcmcQr, [["ρ$i" for i in 1:MCMC.Cond.nItem]; ["Σ[1,1]","Σ[1,2]","Σ[2,1]","Σ[2,2]"]])
 
     ## display
-	println(">> Results for $(typeof(MCMC)).")
+	println("=="^30)
+	println(">> Model: $(typeof(MCMC)).")
+	println(">> This analysis involved $(MCMC.Cond.nSubj) subjects, $(MCMC.Cond.nItem) items, and $(MCMC.Cond.nFeat) features.")
+	println(">> $(MCMC.Cond.nChain) chains of $(MCMC.Cond.nIter) iterations each were run,")
+	if MCMC.Cond.nThin > 1
+		println(">> with the first $(MCMC.Cond.nBurnin) discarded, and every $(MCMC.Cond.nThin) iterations kept,")
+		println(">> totaling $(Int(MCMC.Cond.nChain * (MCMC.Cond.nIter - MCMC.Cond.nBurnin) / MCMC.Cond.nThin)) saved iterations.")
+	else
+		println(">> with the first $(MCMC.Cond.nBurnin) discarded, totaling $(Int(MCMC.Cond.nChain * (MCMC.Cond.nIter - MCMC.Cond.nBurnin) / MCMC.Cond.nThin)) saved iterations.")
+	end
+	
+	if typeof(MCMC) == "GibbsRtIrtCrossQr"
+		println(">> RT Quantile: $(MCMC.Cond.qRt)")
+	end
+	println("=="^30)
+
+	
     println("1) Item Response Model.")
     getPrecisTable(chainsMcmcRa)
     println("2) Response Time Model.")
@@ -790,12 +816,12 @@ version = "17.4.0+2"
 # ╠═b9062d04-23a4-4c81-a707-5b8188c069f1
 # ╠═2f87b8f7-6c0b-4755-a0aa-f0ec79787631
 # ╠═ac58511e-8aae-48bf-9b8a-be9ce80c98a2
-# ╠═f7a3c628-6639-4a9d-83a2-119ee7dac252
+# ╟─f7a3c628-6639-4a9d-83a2-119ee7dac252
 # ╠═05716ce4-e401-43f5-ac0c-b7175fb2c1e9
 # ╠═9283eeb6-84fb-493f-92e7-b0032a7fd3e3
 # ╠═73d38221-2c6d-4993-9830-6722b830ddc1
 # ╠═182f9420-f3a9-423b-99e8-d042c9034d59
-# ╠═9a7b0e47-4a0d-41a3-b9ec-dfcfc34424a9
-# ╠═c8b226c8-10e9-4ea2-a9d0-02285cdf7dc3
+# ╟─9a7b0e47-4a0d-41a3-b9ec-dfcfc34424a9
+# ╟─c8b226c8-10e9-4ea2-a9d0-02285cdf7dc3
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
