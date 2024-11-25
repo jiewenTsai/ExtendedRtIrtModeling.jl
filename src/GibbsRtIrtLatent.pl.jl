@@ -405,7 +405,7 @@ function coef(MCMC::GibbsRtIrtLatent2)
 		println(">> with the first $(MCMC.Cond.nBurnin) discarded, totaling $(Int(MCMC.Cond.nChain * (MCMC.Cond.nIter - MCMC.Cond.nBurnin) / MCMC.Cond.nThin)) saved iterations.")
 	end
 	
-	if typeof(MCMC) == "GibbsRtIrtLatentQr"
+	if MCMC isa GibbsRtIrtLatentQr
 		println(">> RT Quantile: $(MCMC.Cond.qRt)")
 	end
 	println("=="^30)
@@ -456,7 +456,7 @@ function precis(MCMC::GibbsRtIrtLatent2)
 		println(">> with the first $(MCMC.Cond.nBurnin) discarded, totaling $(Int(MCMC.Cond.nChain * (MCMC.Cond.nIter - MCMC.Cond.nBurnin) / MCMC.Cond.nThin)) saved iterations.")
 	end
 	
-	if typeof(MCMC) == "GibbsRtIrtLatentQr"
+	if MCMC isa GibbsRtIrtLatentQr
 		println(">> RT Quantile: $(MCMC.Cond.qRt)")
 	end
 	println("=="^30)

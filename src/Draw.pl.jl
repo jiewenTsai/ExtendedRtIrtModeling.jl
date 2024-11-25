@@ -543,7 +543,7 @@ end
 """
     drawSubjCovarianceLatentQr(Cond, Data, Para) --> Σp
 """
-function drawSubjCovarianceLatent(Cond, Data, Para; δa = 1e-10, δb = 1e-10)
+function drawSubjCovarianceLatent(Cond, Data, Para, cov2one; δa = 1e-10, δb = 1e-10)
     x = [ones(Cond.nSubj) Data.X Para.θ]
 
     parA = δa + Cond.nSubj/2
@@ -565,7 +565,7 @@ end
 """
     drawSubjCovarianceLatentQr(Cond, Data, Para) --> Σp
 """
-function drawSubjCovarianceLatentQr(Cond, Data, Para; δa = 1e-10, δb = 1e-10)
+function drawSubjCovarianceLatentQr(Cond, Data, Para, cov2one; δa = 1e-10, δb = 1e-10)
     x = [ones(Cond.nSubj) Data.X Para.θ]
     k1Rt = (1 - 2 * Cond.qRt) / (Cond.qRt * (1 - Cond.qRt))
     k2Rt = 2 / (Cond.qRt * (1 - Cond.qRt))
