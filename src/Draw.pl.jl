@@ -277,7 +277,7 @@ function drawItemTimeResidualCrossQr(Cond,Data,Para;δa=1e-10, δb=1e-10)
 	k2e = k2Rt.*Para.ν
 
     parA = δa + Cond.nSubj*3 /2 
-	parB = δb .+ sum( (Data.logT .- Para.λ' .+ Para.ζ .+ Para.θ * Para.ρ' .- k1e).^2 ./ (2 .* k2e), dims=1) .+ sum(eRt, dims=1)
+	parB = δb .+ sum( (Data.logT .- Para.λ' .+ Para.ζ .+ Para.θ * Para.ρ' .- k1e).^2 ./ (2 .* k2e), dims=1) .+ sum(Para.ν, dims=1)
     σ²t = rand.(InverseGamma.(parA, parB'))
     return σ²t
 end
@@ -434,10 +434,9 @@ function getSubjCoefficientsLatentQr(Cond,Data,Para; μβ₀=0., σβ₀=1e+10 )
     x = [ones(Cond.nSubj) Data.X Para.θ]
     k1Rt = (1 - 2 * Cond.qRt) / (Cond.qRt * (1 - Cond.qRt))
     k2Rt = 2 / (Cond.qRt * (1 - Cond.qRt))
-	eRt = Para.ν
-    k1e = k1Rt.*eRt
-	k2e = k2Rt .* eRt
-	k2eΣp = 1 ./ (Para.Σp[2,2] .* k2Rt .* eRt)
+    k1e = k1Rt.*Para.ν
+	k2e = k2Rt.*Para.ν
+	k2eΣp = 1 ./ (Para.Σp[2,2] .* k2e)
 	#k2eΣp =  inv.(Para.Σp[2,2])
 
 	β = (k2eΣp ⊗ x'x)  \ (vec(x' * (Para.ζ .- k1e) * k2eΣp'))
@@ -570,13 +569,12 @@ function drawSubjCovarianceLatentQr(Cond, Data, Para; δa = 1e-10, δb = 1e-10)
     x = [ones(Cond.nSubj) Data.X Para.θ]
     k1Rt = (1 - 2 * Cond.qRt) / (Cond.qRt * (1 - Cond.qRt))
     k2Rt = 2 / (Cond.qRt * (1 - Cond.qRt))
-	eRt = Para.ν
-    k1e = k1Rt.*eRt
-	k2e = (k2Rt .* eRt)
+    k1e = k1Rt.*Para.ν
+	k2e = k2Rt.*Para.ν
 
 	
     parA = δa + Cond.nSubj*3 /2 
-	parB = δb .+ sum((Para.ζ .- x * Para.β .- k1Rt * Para.ν).^2  / (2*k2e)) .+ sum(eRt)
+	parB = δb .+ sum((Para.ζ .- x * Para.β .- k1Rt * Para.ν).^2  / (2*k2e)) .+ sum(Para.ν)
 
 	s =  rand(InverseGamma(parA, parB))
     Σp = [1. 0.; 0. s]
