@@ -387,17 +387,19 @@ end
 """
 function drawSubjCoefficientsLatent(Cond,Data,Para; μβ₀=0., σβ₀=1e+10 )
     x = [ones(Cond.nSubj) Data.X Para.θ]
+    """
     parV = 1 ./ (1/σβ₀^2 .+ sum(x.^2 ./ Para.Σp[2,2], dims=1))
     parM = parV .* (μβ₀/σβ₀^2 .+ sum(x .* Para.ζ ./ Para.Σp[2,2], dims=1))   
     β = rand.(Normal.(vec(parM), sqrt.(vec(parV))))
+    """
 
-	
+	#β = x'x \ x'Para.ζ
+
 	invΩ = inv(Para.Σp[2,2])
-	parV = inv( 1/σβ₀^2 .+  invΩ ⊗ x'x) 
+	parV = inv( 1/σβ₀^2 .+  invΩ * x'x) 
     parM = parV * ( μβ₀/σβ₀^2 .+ vec(x'* Para.ζ * invΩ') )
 
 	β = parM .+ cholesky(Symmetric(parV)).L * randn((Cond.nFeat+2))
-	#β = x'x \ x'Para.ζ
 
     return β
 end
