@@ -392,7 +392,7 @@ function coef(MCMC::GibbsRtIrtCross2)
 		println(">> with the first $(MCMC.Cond.nBurnin) discarded, totaling $(Int(MCMC.Cond.nChain * (MCMC.Cond.nIter - MCMC.Cond.nBurnin) / MCMC.Cond.nThin)) saved iterations.")
 	end
 	
-	if typeof(MCMC) == "GibbsRtIrtCrossQr"
+	if MCMC isa GibbsRtIrtCrossQr
 		println(">> RT Quantile: $(MCMC.Cond.qRt)")
 	end
 	println("=="^30)
@@ -444,7 +444,7 @@ function precis(MCMC::GibbsRtIrtCross2)
 		println(">> with the first $(MCMC.Cond.nBurnin) discarded, totaling $(Int(MCMC.Cond.nChain * (MCMC.Cond.nIter - MCMC.Cond.nBurnin) / MCMC.Cond.nThin)) saved iterations.")
 	end
 	
-	if typeof(MCMC) == "GibbsRtIrtCrossQr"
+	if MCMC isa GibbsRtIrtCrossQr
 		println(">> RT Quantile: $(MCMC.Cond.qRt)")
 	end
 	println("=="^30)
