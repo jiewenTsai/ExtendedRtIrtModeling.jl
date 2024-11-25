@@ -24,6 +24,7 @@ using ProgressMeter,
 #include("notebook1102.jl")
 include("Base.pl.jl")
 include("Draw.pl.jl")
+include("SimTools.jl")
 #include("GibbsMlIrt.pl.jl")
 include("GibbsRtIrt.pl.jl")
 include("GibbsRtIrtCross.pl.jl")

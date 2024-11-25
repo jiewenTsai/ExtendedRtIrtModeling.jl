@@ -1,8 +1,8 @@
 ### A Pluto.jl notebook ###
 # v0.20.3
 
-#using Markdown
-#using InteractiveUtils
+using Markdown
+using InteractiveUtils
 
 # ╔═╡ a40a31e9-cc13-4d36-9186-212e8a562ddf
 using PlutoUI,
@@ -187,36 +187,6 @@ end
 md"""
 ## Functions
 """
-
-# ╔═╡ c30fd17e-08ec-4adf-91eb-588d25ee8eec
-
-
-# ╔═╡ e9af1c8b-5456-421c-a7de-fbc6f3bb8694
-"""
-"""
-function setTrueParaRtIrt(Cond;
-	a = [],
-	b = [],
-	β = [],
-	λ = [],
-	σ²t = [],
-	trueStdRa=.8,
-	trueStdRt=sqrt(0.4),
-	trueCorr=0.5
-	
-)
-	truePara = InputPara()
-	truePara.a = rand(Truncated.(Normal(1., 0.2),0,Inf), Cond.nItem)
-	truePara.b = rand(Normal(0., 0.5), Cond.nItem)
-	truePara.β = rand(MvNormal(zeros(2), I(2)), Cond.nFeat)'
-	truePara.λ = rand(Truncated(Normal(4., 0.2 ), 0, Inf), Cond.nItem)
-	truePara.σ²t = rand(Truncated.(Normal(0.3, 0.5), 0, Inf), Cond.nItem)
-	trueStd = Diagonal([trueStdRa, trueStdRt])
-    trueCor = [1. trueCorr; trueCorr 1.]
-	truePara.Σp = trueStd * trueCor * trueStd
-	
-	return truePara 
-end
 
 # ╔═╡ bbce8f4c-82e0-437a-850c-c2e8ff63f954
 """
@@ -1071,8 +1041,6 @@ version = "17.4.0+2"
 # ╠═4d78cd12-de4b-44c9-8477-cdcd88a368ac
 # ╠═97a5de5d-8593-4d9b-bdcf-26cf05d97047
 # ╟─53ff336c-0460-4473-a426-e856783a7fd9
-# ╠═c30fd17e-08ec-4adf-91eb-588d25ee8eec
-# ╟─e9af1c8b-5456-421c-a7de-fbc6f3bb8694
 # ╠═bbce8f4c-82e0-437a-850c-c2e8ff63f954
 # ╠═1c157bce-8ef6-47f2-a8b5-37997cffb87a
 # ╠═d9eaeeb6-aa70-4142-b1ee-2520d4391b45

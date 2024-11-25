@@ -50,14 +50,14 @@ function drawSubjAbility(Cond,Data,Para)
     x = [ones(Cond.nSubj) Data.X]
 
 	θμ₀ = x * Para.β[:,1] 
-	θσ₀² = 1. #Para.Σp[1,1]
+	θσ₀² = Para.Σp[1,1]
 
     parV = 1 ./(1 ./θσ₀² .+ sum(Para.a'.^2 .* Para.ω, dims=2))
 	parM = parV .* (θμ₀ ./θσ₀² .+ sum( Para.a' .* (Data.κ .+ Para.a' .* Para.b' .* Para.ω ), dims=2 ))
 	θ = rand.(Normal.(parM, sqrt.(parV))) 
 
 	#prodA = prod(Para.a)^(1/Cond.nItem)
-	#θNew = θ .* prodA
+	#θp = θ .* prodA
 	return θ
 end
 
@@ -67,11 +67,14 @@ end
 function drawSubjAbilityNull(Cond,Data,Para)
     #x = [ones(Cond.nSubj) Data.X]
 	θμ₀ = 0.
-	θσ₀² = 1. #Para.Σp[1,1] 
+	θσ₀² = Para.Σp[1,1] 
 
     parV = 1 ./(1 ./θσ₀² .+ sum(Para.a'.^2 .* Para.ω, dims=2))
 	parM = parV .* (θμ₀ ./θσ₀² .+ sum( Para.a' .* (Data.κ .+ Para.a' .* Para.b' .* Para.ω ), dims=2 ))
 	θ = rand.(Normal.(parM, sqrt.(parV))) 
+
+    #prodA = prod(Para.a)^(1/Cond.nItem)
+    #θp = θ .* prodA
 
 	return θ
 end
@@ -82,7 +85,7 @@ md"### Item parameters"
 # ╔═╡ 4a977b7d-98e0-4a24-9889-db6bafcba040
 """
 """
-function drawItemDiscrimination(Data, Para; μa₀=1., σa₀=1e+10)
+function drawItemDiscrimination(Data, Para; μa₀=1., σa₀=1)
 	parV = 1 ./ (1/σa₀.^2 .+ sum( (Para.θ .- Para.b').^2 .*  Para.ω, dims=1))
     parM = parV .* ( μa₀/σa₀.^2  .+  sum( Data.κ .* (Para.θ .- Para.b'), dims=1) )
     a = rand.(Truncated.(Normal.(parM, sqrt.(parV)), 0, Inf)  ) 
@@ -92,10 +95,11 @@ end
 # ╔═╡ 33582955-b9e0-406f-b0ad-995b2d630236
 """
 """
-function drawItemDifficulty(Data, Para; μb₀=0., σb₀=1e+10)
+function drawItemDifficulty(Data, Para; μb₀=0., σb₀=1)
 	parV = 1 ./ (1/σb₀^2 .+  sum( Para.a'.^2 .* Para.ω, dims=1)')
     parM = parV .* ( μb₀/σb₀^2 .- sum( Para.a' .* ( Data.κ .- Para.θ*Para.a'.*Para.ω), dims=1) )'
     b = rand.(Normal.(parM, sqrt.(parV))) 
+
     return b
 end
 

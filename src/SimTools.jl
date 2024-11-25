@@ -1,192 +1,203 @@
 ### A Pluto.jl notebook ###
 # v0.20.3
 
-#using Markdown
-#using InteractiveUtils
+using Markdown
+using InteractiveUtils
 
-# ╔═╡ d56e2e5e-9f3f-11ef-1cca-5d2c402df9cc
-using PlutoUI,
-	ProgressMeter,
-	PrettyTables
+# ╔═╡ 1d4a9f51-3db8-4a78-936d-a7f2879cc0a0
+using PlutoUI
 
-# ╔═╡ 7322d288-9bdb-46ac-b1a2-8d1ce2f713ad
+# ╔═╡ 3dd409f0-ab34-11ef-22d1-3b72e5416118
 md"""
-# Base 
+# Simulation Study Tools
 
-Basic structs and functions.
+
+## prepare real data.
 """
 
-# ╔═╡ ba0a69c3-16fe-4117-8e05-9c2bdf141d42
+# ╔═╡ 23484455-73cd-4c7f-a13d-f58fb0bc3051
 TableOfContents()
 
-# ╔═╡ 8d06e1a2-b0d9-4de5-82fc-18109a59a6fe
-md"""
-
-We provided four classes,
-
-- GibbsMlIrt
-- GibbsRtIrt
-- GibbsRtIrtCross
-- GibbsRtIrtCrossQr
-- GibbsRtIrtLatent
-- GibbsRtIrtLatentQr
-
-"""
-
-# ╔═╡ 94aeede5-a574-409d-bd2d-08d413bfbb0f
-md"""
-## Structs and related functions
-
-"""
-
-# ╔═╡ 7cb992b4-23d0-4edb-b8f6-058ccd6feb0c
+# ╔═╡ 74c8ac72-0701-4a5a-8409-0d93e6022503
 """
 """
-struct SimConditions
-	nSubj::Int
-	nItem::Int
-	nFeat::Int
-	nIter::Int
-	nChain::Int
-	nBurnin::Int
-	nThin::Int
-	nRep::Int
-	qRa::Float64
-	qRt::Float64
+function setTrueParaRtIrt(Cond;
+	a = [],
+	b = [],
+	β = [],
+	λ = [],
+	σ²t = [],
+	trueStdRa=1.,
+	trueStdRt=1.,
+	trueCorr=0.
+	
+)
+	truePara = InputPara()
+	truePara.a = rand(Truncated.(Normal(1., sqrt(0.2)),0,Inf), Cond.nItem)
+	truePara.b = rand(Normal(0., sqrt(0.5)), Cond.nItem)
+	truePara.λ = rand(Truncated(Normal(4., sqrt(0.2) ), 0, Inf), Cond.nItem)
+	truePara.σ²t = rand(Truncated.(Normal(0.3, sqrt(0.5)), 0, Inf), Cond.nItem)
+	trueStd = Diagonal([trueStdRa, trueStdRt])
+    trueCor = [1. trueCorr; trueCorr 1.]
+	truePara.Σp = trueStd * trueCor * trueStd
+	truePara.β = rand(MvNormal(zeros(2), I(2)), Cond.nFeat)'
+	return truePara 
 end
 
-# ╔═╡ 37b7be5c-2a0e-4a81-bde2-5aecb7b557c9
-function setCond(; nSubj=2000, nItem=15, nFeat=3, nIter=5000, nChain=4, nBurnin=Float64[], nThin=1, nRep = 10, qRa=0.5, qRt=0.5)
-	nBurnin = round(Int, nIter/2)
-	return SimConditions(nSubj, nItem, nFeat, nIter, nChain, nBurnin, nThin, nRep, 	qRa, qRt)
+# ╔═╡ 201f594a-cc89-4236-957f-ed88953b9ebd
+"""
+"""
+function setTrueParaMlIrt(Cond;
+	#θ = randn(COND.nSubj),
+	a=[],
+	b=[],
+	β=[]	
+)
+	truePara = InputPara()
+	#truePara.θ = θ
+	truePara.a = rand(Truncated.(Normal(1., 0.2),0,Inf), Cond.nItem)
+	truePara.b = rand(Normal(0., 0.5), Cond.nItem)
+	truePara.β = rand(MvNormal(zeros(1), I(1)), Cond.nFeat)'
+	return truePara 
 end
 
-# ╔═╡ 7c35ff10-d7c7-4581-bf9d-abdec994f969
+# ╔═╡ 595dbac9-1bb6-4975-928c-5a53f28eae56
 """
 """
-struct InputData
-	Y::Array
-	κ::Array
-	T::Array
-	logT::Array
-	X::Array
-	function InputData(;Y=[], T=[], X=[])
-		κ = Y .- 0.5
-		logT = log.(T)
-		return new(Y, κ, T, logT, X)
-	end
+function setDataRtIrtNull(Cond, truePara)
+
+	## structure
+
+	## ra and rt
+	noise = rand(MvNormal(zeros(2), truePara.Σp), Cond.nSubj)
+    trueSubj = noise'
+	truePara.θ = trueSubj[:,1]
+	truePara.ζ = trueSubj[:,2]
+	#truePara.Σp = cov(trueSubj')
+
+
+	## irt
+    truePr =  truePara.a' .* (truePara.θ .- truePara.b') 
+    trueY = rand.(BernoulliLogit.(truePr))
+
+	## rt
+    μt =  truePara.λ' .- truePara.ζ 
+    trueT = rand.(Truncated.(LogNormal.(μt, sqrt.(truePara.σ²t')), 0, Inf))
+
+	## collect
+	trueData = InputData(Y=trueY, T=trueT)
+
+
+	return trueData
+
 end
 
-# ╔═╡ 6d749878-1154-4e42-aafb-c4e309da31f9
+# ╔═╡ 838de637-d131-480b-99d8-ed55433f41de
 """
-	InputData4R
-*Note.* This struct is mainly for R users.
+"""
+function setDataRtIrt(Cond, truePara)
 
-"""
-struct InputData4R
-	Y::Array
-	κ::Array
-	T::Array
-	logT::Array
-	X::Array
-	function InputData4R(;Y=[], κ=[], T=[], logT=[], X=[])
-		return new(Y, κ, T, logT, X)
-	end
+	## structure
+	trueX = Array{Float64}(undef, Cond.nSubj, Cond.nFeat)
+	trueX[:,1:end] = rand(Normal(0, 1.), Cond.nSubj, (Cond.nFeat))
+
+	## ra and rt
+    trueMean = trueX * truePara.β
+	#noise = cholesky(Symmetric(truePara.Σp)).L * randn(2,Cond.nSubj)
+	noise = rand(MvNormal(zeros(2), truePara.Σp), Cond.nSubj)
+    trueSubj = trueMean .+ noise'
+	truePara.θ = trueSubj[:,1]
+	truePara.ζ = trueSubj[:,2]
+	
+	## irt
+    truePr =  truePara.a' .* (truePara.θ .- truePara.b') 
+    trueY = rand.(BernoulliLogit.(truePr))
+
+	## rt
+    μt =  truePara.λ' .- truePara.ζ
+    trueT = rand.(Truncated.(LogNormal.(μt, sqrt.(truePara.σ²t')), 0, Inf))
+
+	## collect
+	trueData = InputData(Y=trueY, X=trueX, T=trueT)
+
+
+	return trueData
+
 end
 
-# ╔═╡ b9c1de8a-cd65-4a6b-8dd8-bf53279a6a44
+# ╔═╡ 7fa851f0-f16d-43d1-af39-a992f5764c88
 """
 """
-mutable struct InputPara
-	ω::Array
-    θ::Array
-    a::Array
-    b::Array
-	ζ::Array
-	λ::Array
-	σ²t::Array
-	ν::Array
-	β::Array
-    ρ::Array
-	Σp::Array
-	function InputPara(;ω=Float64[], θ=Float64[], a=Float64[], b=Float64[], ζ=Float64[], λ=Float64[], σ²t=Float64[], ν=Float64[], β=Float64[], ρ=Float64[], Σp=Float64[])
-		return new(ω, θ, a, b, ζ, λ, σ²t, ν, β, ρ, Σp)
-	end
+function setDataRtIrtLatent(Cond, truePara)
+
+	## structure
+	trueX = Array{Float64}(undef, Cond.nSubj, Cond.nFeat)
+	#trueX[:,1] = rand(Bernoulli(0.5), Cond.nSubj)
+	trueX[:,1:end] = rand(Normal(0, 1.), Cond.nSubj, (Cond.nFeat))
+
+	## ra and rt
+    trueMean = trueX * truePara.β
+	#noise = cholesky(Symmetric(truePara.Σp)).L * randn(2,Cond.nSubj)
+	noise = rand(MvNormal(zeros(2), truePara.Σp), Cond.nSubj)
+    trueSubj = trueMean .+ noise'
+	truePara.θ = trueSubj[:,1]
+	truePara.ζ = trueSubj[:,2]
+	#truePara.Σp = cov(trueSubj')
+	## t(2)
+	#truePara.τ = trueSubj'[:,2] ./ sqrt.(rand(Chisq(2), Cond.nSubj) ./ 2)
+	## beta(0.5,0.5)
+	#truePara.τ = quantile(Beta(0.5, 0.5), cdf(Normal(0, 1), trueSubj'[:,2]))
+	## gamma(2.0,2.0)
+	#truePara.τ = quantile(Gamma(2.0, 2.0), cdf(Normal(0, 1), trueSubj'[:,2]))
+
+
+	## irt
+    truePr =  truePara.a' .* (truePara.θ .- truePara.b') 
+    trueY = rand.(BernoulliLogit.(truePr))
+
+	## rt
+    μt =  truePara.λ' .- truePara.ζ 
+    trueT = rand.(Truncated.(LogNormal.(μt, sqrt.(truePara.σ²t')), 0, Inf))
+
+	## collect
+	trueData = InputData(Y=trueY, X=trueX, T=trueT)
+
+
+	return trueData
+
 end
 
-# ╔═╡ 2c3f03ca-0f46-4771-906a-05ceef8845f0
-
-
-# ╔═╡ 5a220de1-100d-4565-9a22-be0b7d3db000
-"""
-    OutputDic --> Dic
-
-Represents a DIC (Deviance Information Criterion) output object, used to evaluate the fit of a Bayesian model. This struct is designed to store the DIC results for model comparison and evaluation purposes.
-
-# Fields
-- `pD::Float64`: The effective number of parameters, which provides a measure of model complexity.
-- `DIC::Float64`: The Deviance Information Criterion, a model selection metric that balances model fit and complexity.
-"""
-mutable struct OutputDic
-	pD
-	DIC
-	function OutputDic(; pD=Float64[], DIC=Float64[])
-		return new(pD, DIC)
-	end
-end
-
-# ╔═╡ b36e84a1-851b-4bca-8f32-8b106a890839
+# ╔═╡ 7b1041d1-bb69-412a-80e8-c0ab731545f4
 """
 """
-getRmse(a,b) = sqrt(mean(sum((a - b).^2) / length(a)))
+function setDataMlIrt(Cond, truePara;)
+	## structure
+	trueX = Array{Float64}(undef, Cond.nSubj, Cond.nFeat)
+	trueX[:,1] = rand(Bernoulli(0.5), Cond.nSubj)
+	trueX[:,2:end] = rand(Normal(0, 1.), Cond.nSubj, (Cond.nFeat-1))
 
-# ╔═╡ 9b2e8084-5d9d-4475-a696-f413f2ac215d
-"""
-"""
-getBias(a,b) = mean(sum(a - b) / length(a))
+	## ra
+    trueMean = trueX * truePara.β
+    trueStd = 1.
+	truePara.θ = rand.(Normal.(trueMean, trueStd))
 
+	## irt
+    truePr =  truePara.a' .* (truePara.θ .- truePara.b') 
+    trueY = rand.(BernoulliLogit.(truePr))
 
-# ╔═╡ 813328c7-cedd-4978-9f8b-dfc2fe21f6f4
-"""
-"""
-mutable struct SimEvaluation
-	Bias
-	Rmse
-	Dic
-	function SimEvaluation(;Bias=Float64[],Rmse=Float64[],Dic=Float64[])
-		return new(Bias, Rmse, Dic)
-	end
-end
+	## collect
+	trueData = InputData(Y=trueY, X=trueX)
 
-# ╔═╡ 531f7de2-6cc8-427d-8634-96d51c913069
-function getPrecisTable(chains)
-    h1 = Highlighter(
-        f = (data, i, j) -> (data[i, j] isa AbstractFloat && data[i, j] <= 0.),
-        crayon = crayon"red"
-    )
-    tab1 = summarystats(chains)[:,[:mean, :std, :ess, :rhat]] |> DataFrame
-    tab2 = Dict(
-        "q05" => quantile(chains, q=[0.05])[:,2],
-        "q95" => quantile(chains, q=[0.95])[:,2]
-    ) |> DataFrame
-    tab3 = Dict("Sig" => [i ? "" : "*" for i in (0. .> tab2[:,1]) .& (0. .< tab2[:,2])]) |> DataFrame
-
-    ## display
-    pretty_table([tab1 tab2 tab3], highlighters=h1, formatters = ft_printf("%5.3f"))
-    #tab3
+	return trueData
 end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
-PrettyTables = "08abe8d2-0d0c-5749-adfa-8a2ac140af0d"
-ProgressMeter = "92933f4c-e287-5a05-a399-4b506db050ca"
 
 [compat]
 PlutoUI = "~0.7.60"
-PrettyTables = "~2.4.0"
-ProgressMeter = "~1.10.2"
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000002
@@ -195,7 +206,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.10.3"
 manifest_format = "2.0"
-project_hash = "6a91486a11a55c4e1a004aeab89a1fa6ef02e9a4"
+project_hash = "c1674f662899f5bfc062df83020732df21a649e9"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -224,28 +235,9 @@ deps = ["Artifacts", "Libdl"]
 uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
 version = "1.1.1+0"
 
-[[deps.Crayons]]
-git-tree-sha1 = "249fe38abf76d48563e2f4556bebd215aa317e15"
-uuid = "a8cc5b0e-0ffa-5ad4-8c14-923d3ee1735f"
-version = "4.1.1"
-
-[[deps.DataAPI]]
-git-tree-sha1 = "abe83f3a2f1b857aac70ef8b269080af17764bbe"
-uuid = "9a962f9c-6df0-11e9-0e5d-c546b8b5ee8a"
-version = "1.16.0"
-
-[[deps.DataValueInterfaces]]
-git-tree-sha1 = "bfc1187b79289637fa0ef6d4436ebdfe6905cbd6"
-uuid = "e2d170a0-9d28-54be-80f0-106bbe20a464"
-version = "1.0.0"
-
 [[deps.Dates]]
 deps = ["Printf"]
 uuid = "ade2ca70-3891-5945-98fb-dc099432e06a"
-
-[[deps.Distributed]]
-deps = ["Random", "Serialization", "Sockets"]
-uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 
 [[deps.Downloads]]
 deps = ["ArgTools", "FileWatching", "LibCURL", "NetworkOptions"]
@@ -283,21 +275,11 @@ version = "0.2.5"
 deps = ["Markdown"]
 uuid = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
 
-[[deps.IteratorInterfaceExtensions]]
-git-tree-sha1 = "a3f24677c21f5bbe9d2a714f95dcd58337fb2856"
-uuid = "82899510-4779-5014-852e-03e436cf321d"
-version = "1.0.0"
-
 [[deps.JSON]]
 deps = ["Dates", "Mmap", "Parsers", "Unicode"]
 git-tree-sha1 = "31e996f0a15c7b280ba9f76636b3ff9e2ae58c9a"
 uuid = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 version = "0.21.4"
-
-[[deps.LaTeXStrings]]
-git-tree-sha1 = "50901ebc375ed41dbf8058da26f9de442febbbec"
-uuid = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
-version = "1.3.1"
 
 [[deps.LibCURL]]
 deps = ["LibCURL_jll", "MozillaCACerts_jll"]
@@ -363,11 +345,6 @@ deps = ["Artifacts", "CompilerSupportLibraries_jll", "Libdl"]
 uuid = "4536629a-c528-5b80-bd46-f80d51c5b363"
 version = "0.3.23+4"
 
-[[deps.OrderedCollections]]
-git-tree-sha1 = "dfdf5519f235516220579f949664f1bf44e741c5"
-uuid = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
-version = "1.6.3"
-
 [[deps.Parsers]]
 deps = ["Dates", "PrecompileTools", "UUIDs"]
 git-tree-sha1 = "8489905bcdbcfac64d1daa51ca07c0d8f0283821"
@@ -397,21 +374,9 @@ git-tree-sha1 = "9306f6085165d270f7e3db02af26a400d580f5c6"
 uuid = "21216c6a-2e73-6563-6e65-726566657250"
 version = "1.4.3"
 
-[[deps.PrettyTables]]
-deps = ["Crayons", "LaTeXStrings", "Markdown", "PrecompileTools", "Printf", "Reexport", "StringManipulation", "Tables"]
-git-tree-sha1 = "1101cd475833706e4d0e7b122218257178f48f34"
-uuid = "08abe8d2-0d0c-5749-adfa-8a2ac140af0d"
-version = "2.4.0"
-
 [[deps.Printf]]
 deps = ["Unicode"]
 uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
-
-[[deps.ProgressMeter]]
-deps = ["Distributed", "Printf"]
-git-tree-sha1 = "8f6bc219586aef8baf0ff9a5fe16ee9c70cb65e4"
-uuid = "92933f4c-e287-5a05-a399-4b506db050ca"
-version = "1.10.2"
 
 [[deps.REPL]]
 deps = ["InteractiveUtils", "Markdown", "Sockets", "Unicode"]
@@ -446,12 +411,6 @@ deps = ["LinearAlgebra", "SparseArrays"]
 uuid = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 version = "1.10.0"
 
-[[deps.StringManipulation]]
-deps = ["PrecompileTools"]
-git-tree-sha1 = "a6b1675a536c5ad1a60e5a5153e1fee12eb146e3"
-uuid = "892a3eda-7b42-436c-8928-eab12a02cf0e"
-version = "0.4.0"
-
 [[deps.SuiteSparse_jll]]
 deps = ["Artifacts", "Libdl", "libblastrampoline_jll"]
 uuid = "bea87d4a-7f5b-5778-9afe-8cc45184846c"
@@ -461,18 +420,6 @@ version = "7.2.1+1"
 deps = ["Dates"]
 uuid = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
 version = "1.0.3"
-
-[[deps.TableTraits]]
-deps = ["IteratorInterfaceExtensions"]
-git-tree-sha1 = "c06b2f539df1c6efa794486abfb6ed2022561a39"
-uuid = "3783bdb8-4a98-5b6b-af9a-565f29a5fe9c"
-version = "1.0.1"
-
-[[deps.Tables]]
-deps = ["DataAPI", "DataValueInterfaces", "IteratorInterfaceExtensions", "OrderedCollections", "TableTraits"]
-git-tree-sha1 = "598cd7c1f68d1e205689b1c2fe65a9f85846f297"
-uuid = "bd369af6-aec1-5ad0-b16a-f7cc5008161c"
-version = "1.12.0"
 
 [[deps.Tar]]
 deps = ["ArgTools", "SHA"]
@@ -522,21 +469,14 @@ version = "17.4.0+2"
 """
 
 # ╔═╡ Cell order:
-# ╠═7322d288-9bdb-46ac-b1a2-8d1ce2f713ad
-# ╠═d56e2e5e-9f3f-11ef-1cca-5d2c402df9cc
-# ╠═ba0a69c3-16fe-4117-8e05-9c2bdf141d42
-# ╠═8d06e1a2-b0d9-4de5-82fc-18109a59a6fe
-# ╠═94aeede5-a574-409d-bd2d-08d413bfbb0f
-# ╠═7cb992b4-23d0-4edb-b8f6-058ccd6feb0c
-# ╠═37b7be5c-2a0e-4a81-bde2-5aecb7b557c9
-# ╠═7c35ff10-d7c7-4581-bf9d-abdec994f969
-# ╠═6d749878-1154-4e42-aafb-c4e309da31f9
-# ╠═b9c1de8a-cd65-4a6b-8dd8-bf53279a6a44
-# ╠═2c3f03ca-0f46-4771-906a-05ceef8845f0
-# ╠═5a220de1-100d-4565-9a22-be0b7d3db000
-# ╠═b36e84a1-851b-4bca-8f32-8b106a890839
-# ╠═9b2e8084-5d9d-4475-a696-f413f2ac215d
-# ╠═813328c7-cedd-4978-9f8b-dfc2fe21f6f4
-# ╠═531f7de2-6cc8-427d-8634-96d51c913069
+# ╟─3dd409f0-ab34-11ef-22d1-3b72e5416118
+# ╠═1d4a9f51-3db8-4a78-936d-a7f2879cc0a0
+# ╠═23484455-73cd-4c7f-a13d-f58fb0bc3051
+# ╠═74c8ac72-0701-4a5a-8409-0d93e6022503
+# ╠═201f594a-cc89-4236-957f-ed88953b9ebd
+# ╠═595dbac9-1bb6-4975-928c-5a53f28eae56
+# ╠═838de637-d131-480b-99d8-ed55433f41de
+# ╠═7fa851f0-f16d-43d1-af39-a992f5764c88
+# ╠═7b1041d1-bb69-412a-80e8-c0ab731545f4
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
