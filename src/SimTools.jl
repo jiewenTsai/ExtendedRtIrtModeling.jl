@@ -97,8 +97,8 @@ function setTrueParaMlIrt(Cond;
 )
 	truePara = InputPara()
 	#truePara.θ = θ
-	truePara.a = rand(Truncated.(Normal(1., 0.2),0,Inf), Cond.nItem)
-	truePara.b = rand(Normal(0., 0.5), Cond.nItem)
+	truePara.a = rand(Truncated.(Normal(1., sqrt(0.2)),0,Inf), Cond.nItem)
+	truePara.b = rand(Normal(0., sqrt(0.5)), Cond.nItem)
 	truePara.β = rand(MvNormal(zeros(1), I(1)), Cond.nFeat)'
 	return truePara 
 end
