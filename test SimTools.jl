@@ -212,7 +212,9 @@ df.Dic
 
 @load "sim3.jld2"
 
+df2 = load("sim3.jld2")
 
+df2["df"].Rmse
 
 # 轉換為 DataFrame
 df = DataFrame()

@@ -44,8 +44,9 @@ export
 	## get
 	getBias, 
     getRmse, 
+    getCorr,
     getDic,
-	evaluate,
+	#evaluate,
 
 	## sample!
 	sample!,
@@ -62,7 +63,8 @@ export
 	
 	## Miscellaneous
 	coef, 
-    precis    
+    precis,
+    OutputMetrics    
 
 
 
