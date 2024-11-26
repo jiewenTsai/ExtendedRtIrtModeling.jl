@@ -471,13 +471,6 @@ function getDic(MCMC::GibbsRtIrtNull)
 	
 end
 
-# ╔═╡ d97fb13b-35e2-40fd-aedf-dd72db2d0e90
-function evaluate(MCMC::GibbsRtIrt)
-	Rmse = [getRmse(MCMC.Post.mean.a , MCMC.truePara.a) getRmse(MCMC.Post.mean.b , MCMC.truePara.b) getRmse(MCMC.Post.mean.β, MCMC.truePara.β)]
-	Bias = [getBias(MCMC.Post.mean.a, MCMC.truePara.a) getBias(MCMC.Post.mean.b , MCMC.truePara.b) getBias(MCMC.Post.mean.β, MCMC.truePara.β)]
-	Dic = getDic(MCMC.Cond, MCMC.Data, MCMC.Post).DIC
-	return Rmse, Bias, Dic
-end
 
 # ╔═╡ fe805a42-b5da-47bb-a6fe-170426b1099a
 """

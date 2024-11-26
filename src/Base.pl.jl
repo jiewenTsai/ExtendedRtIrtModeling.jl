@@ -135,26 +135,16 @@ mutable struct OutputDic
 	end
 end
 
-# ╔═╡ b36e84a1-851b-4bca-8f32-8b106a890839
-"""
-"""
-getRmse(a,b) = sqrt(mean(sum((a - b).^2) / length(a)))
-
-# ╔═╡ 9b2e8084-5d9d-4475-a696-f413f2ac215d
-"""
-"""
-getBias(a,b) = mean(sum(a - b) / length(a))
-
-
 # ╔═╡ 813328c7-cedd-4978-9f8b-dfc2fe21f6f4
 """
 """
 mutable struct SimEvaluation
 	Bias
 	Rmse
+	Corr
 	Dic
-	function SimEvaluation(;Bias=Float64[],Rmse=Float64[],Dic=Float64[])
-		return new(Bias, Rmse, Dic)
+	function SimEvaluation(;Bias=Float64[],Rmse=Float64[],Corr=Float64[],Dic=Float64[])
+		return new(Bias, Rmse, Corr, Dic)
 	end
 end
 

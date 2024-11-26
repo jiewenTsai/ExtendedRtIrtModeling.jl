@@ -18,6 +18,48 @@ md"""
 # ╔═╡ 23484455-73cd-4c7f-a13d-f58fb0bc3051
 TableOfContents()
 
+# ╔═╡ bc0d18af-ab68-443d-8e98-ec5fbedc2e12
+struct OutputMetrics
+    Rmse 
+    Bias 
+    Corr 
+    Dic 
+    function OutputMetrics(
+        Rmse = DataFrame(),
+        Bias = DataFrame(),
+        Corr = DataFrame(),
+        Dic = []
+    )
+        return new(Rmse, Bias, Corr, Dic)
+    end
+end
+
+# ╔═╡ b57756d7-b28a-4fba-be7d-d1b9f196fb20
+begin
+	getRmseBasic(a,b) = mean(sqrt(mean((a - b).^2)))
+	getBiasBasic(a,b) = mean(mean(a - b))
+end
+
+# ╔═╡ d66e453f-de50-42a5-a821-508e23b44b10
+begin
+	function getPropertyPost(MCMC, name)
+		Base.getproperty(MCMC, :Post) |> 
+		    x -> Base.getproperty(x, :mean) |>
+		    x -> Base.getproperty(x, name) 
+	end
+	function getPropertyTrue(MCMC, name)
+		Base.getproperty(MCMC, :truePara) |> 
+		    x -> Base.getproperty(x, name) 
+	end
+end
+
+# ╔═╡ 3468403a-3ae8-4635-9fd9-66538be96315
+begin
+	getRmse(MCMC, name) = mean(sqrt(mean((getPropertyPost(MCMC, name) .- getPropertyTrue(MCMC, name)).^2)))
+	getBias(MCMC, name) = mean(mean(getPropertyPost(MCMC, name) .- getPropertyTrue(MCMC, name)))
+	getCorr(MCMC, name) = cor(getPropertyPost(MCMC, name), getPropertyTrue(MCMC, name))
+end
+
 # ╔═╡ 74c8ac72-0701-4a5a-8409-0d93e6022503
 """
 """
@@ -192,6 +234,8 @@ function setDataMlIrt(Cond, truePara;)
 end
 
 # ╔═╡ cf125fa8-18c0-4f44-80fd-4447c45a5876
+"""
+"""
 function testingDict(nSubj::Int, nItem::Int , nFeat::Int)
 	data = Dict(
 		"Y" => rand(nSubj, nItem),
@@ -202,6 +246,36 @@ function testingDict(nSubj::Int, nItem::Int , nFeat::Int)
 	return data
 end
 
+
+# ╔═╡ b8a44521-8622-4b83-9518-a2da3107d91e
+"""
+function evaluate(MCMC::GibbsRtIrtNull)
+	Rmse = [getRmse(MCMC.Post.mean.a , MCMC.truePara.a) getRmse(MCMC.Post.mean.b , MCMC.truePara.b)]
+	Bias = [getBias(MCMC.Post.mean.a, MCMC.truePara.a) getBias(MCMC.Post.mean.b , MCMC.truePara.b)]
+	Dic = getDicMlIrt(MCMC.Cond, MCMC.Data, MCMC.Post).DIC
+	return Rmse, Bias, Dic
+end
+"""
+
+# ╔═╡ cf9fd679-b387-476f-8401-46082d4f6c93
+"""
+function evaluate(MCMC::GibbsRtIrtNull)
+	Rmse = [getRmse(MCMC.Post.mean.a , MCMC.truePara.a) getRmse(MCMC.Post.mean.b , MCMC.truePara.b)]
+	Bias = [getBias(MCMC.Post.mean.a, MCMC.truePara.a) getBias(MCMC.Post.mean.b , MCMC.truePara.b)]
+	Dic = getDicMlIrt(MCMC.Cond, MCMC.Data, MCMC.Post).DIC
+	return Rmse, Bias, Dic
+end
+"""
+
+# ╔═╡ 8d47ab56-b591-4d18-85c2-03550463d90a
+"""
+function evaluate(MCMC::GibbsRtIrtQuantile)
+	Rmse = [getRmse(MCMC.Post.mean.a , MCMC.truePara.a) getRmse(MCMC.Post.mean.b , MCMC.truePara.b) getRmse(MCMC.Post.mean.β, MCMC.truePara.β)]
+	Bias = [getBias(MCMC.Post.mean.a, MCMC.truePara.a) getBias(MCMC.Post.mean.b , MCMC.truePara.b) getBias(MCMC.Post.mean.β, MCMC.truePara.β)]
+	Dic = getDicMlIrt(MCMC.Cond, MCMC.Data, MCMC.Post).DIC
+	return Rmse, Bias, Dic
+end
+"""
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -484,6 +558,10 @@ version = "17.4.0+2"
 # ╟─3dd409f0-ab34-11ef-22d1-3b72e5416118
 # ╠═1d4a9f51-3db8-4a78-936d-a7f2879cc0a0
 # ╠═23484455-73cd-4c7f-a13d-f58fb0bc3051
+# ╠═bc0d18af-ab68-443d-8e98-ec5fbedc2e12
+# ╠═b57756d7-b28a-4fba-be7d-d1b9f196fb20
+# ╠═d66e453f-de50-42a5-a821-508e23b44b10
+# ╠═3468403a-3ae8-4635-9fd9-66538be96315
 # ╠═74c8ac72-0701-4a5a-8409-0d93e6022503
 # ╠═201f594a-cc89-4236-957f-ed88953b9ebd
 # ╠═595dbac9-1bb6-4975-928c-5a53f28eae56
@@ -491,5 +569,8 @@ version = "17.4.0+2"
 # ╠═7fa851f0-f16d-43d1-af39-a992f5764c88
 # ╠═7b1041d1-bb69-412a-80e8-c0ab731545f4
 # ╠═cf125fa8-18c0-4f44-80fd-4447c45a5876
+# ╠═b8a44521-8622-4b83-9518-a2da3107d91e
+# ╠═cf9fd679-b387-476f-8401-46082d4f6c93
+# ╠═8d47ab56-b591-4d18-85c2-03550463d90a
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
