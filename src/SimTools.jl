@@ -1,8 +1,8 @@
 ### A Pluto.jl notebook ###
 # v0.20.3
 
-using Markdown
-using InteractiveUtils
+#using Markdown
+#using InteractiveUtils
 
 # ╔═╡ 1d4a9f51-3db8-4a78-936d-a7f2879cc0a0
 using PlutoUI
@@ -190,6 +190,18 @@ function setDataMlIrt(Cond, truePara;)
 
 	return trueData
 end
+
+# ╔═╡ cf125fa8-18c0-4f44-80fd-4447c45a5876
+function testingDict(nSubj::Int, nItem::Int , nFeat::Int)
+	data = Dict(
+		"Y" => rand(nSubj, nItem),
+		"" => rand(nSubj, nFeat),
+		"T" => randn(nSubj, nItem)
+	
+	)
+	return data
+end
+
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -478,5 +490,6 @@ version = "17.4.0+2"
 # ╠═838de637-d131-480b-99d8-ed55433f41de
 # ╠═7fa851f0-f16d-43d1-af39-a992f5764c88
 # ╠═7b1041d1-bb69-412a-80e8-c0ab731545f4
+# ╠═cf125fa8-18c0-4f44-80fd-4447c45a5876
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
