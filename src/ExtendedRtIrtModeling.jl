@@ -46,6 +46,8 @@ export
     getRmse, 
     getCorr,
     getDic,
+    getBiasBasic,
+    getRmseBasic,
 	#evaluate,
 
 	## sample!

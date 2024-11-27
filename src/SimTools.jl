@@ -20,17 +20,19 @@ TableOfContents()
 
 # ╔═╡ bc0d18af-ab68-443d-8e98-ec5fbedc2e12
 struct OutputMetrics
+	Key
     Rmse 
     Bias 
     Corr 
     Dic 
-    function OutputMetrics(
-        Rmse = DataFrame(),
-        Bias = DataFrame(),
-        Corr = DataFrame(),
+    function OutputMetrics(;
+		Key = [],
+        Rmse = [],
+        Bias = [],
+        Corr = [],
         Dic = []
     )
-        return new(Rmse, Bias, Corr, Dic)
+        return new(Key, Rmse, Bias, Corr, Dic)
     end
 end
 
