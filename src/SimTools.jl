@@ -19,7 +19,7 @@ md"""
 TableOfContents()
 
 # ╔═╡ bc0d18af-ab68-443d-8e98-ec5fbedc2e12
-struct OutputMetrics
+mutable struct OutputMetrics
 	Key
     Rmse 
     Bias 
