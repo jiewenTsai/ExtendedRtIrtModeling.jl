@@ -409,7 +409,7 @@ end
 	- funcGibbs.
 
 """
-function runSimulation(Cond, truePara; Para=(:a, :b, :λ, :σ²t), funcData=setDataRtIrt, funcGibbs=GibbsRtIrt)
+function runSimulation(Cond, truePara; Para=(:a, :b, :λ, :σ²t), funcData=setDataRtIrt, funcGibbs=GibbsRtIrt, typeName="norm")
     fooData = getfield(Main, Symbol(funcData))
     fooGibbs = getfield(Main, Symbol(funcGibbs))
 
@@ -428,7 +428,7 @@ function runSimulation(Cond, truePara; Para=(:a, :b, :λ, :σ²t), funcData=setD
         end
 
         ## Data.
-        Data = fooData(Cond, truePara)
+        Data = fooData(Cond, truePara; type=typeName)
 
         ## Fit.
         Mcmc = fooGibbs(Cond, truePara=truePara, Data=Data)
