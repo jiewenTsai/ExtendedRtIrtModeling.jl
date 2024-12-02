@@ -38,16 +38,18 @@ export
     setDataMlIrt, 
     setDataRtIrt, 
     setDataRtIrtNull,
+    setDataRtIrtCross,
+    setDataRtIrtLatent,
 	setTrueParaMlIrt, 
     setTrueParaRtIrt,
+    setTrueParaRtIrtCross,
+    setTrueParaRtIrtLatent,
 
 	## get
 	getBias, 
     getRmse, 
     getCorr,
     getDic,
-    getBiasBasic,
-    getRmseBasic,
 	#evaluate,
 
 	## sample!
@@ -66,7 +68,9 @@ export
 	## Miscellaneous
 	coef, 
     precis,
-    OutputMetrics    
+    comparePara,
+    OutputMetrics,
+    runSimulation    
 
 
 

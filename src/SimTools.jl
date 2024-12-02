@@ -38,11 +38,12 @@ end
 
 # ╔═╡ b57756d7-b28a-4fba-be7d-d1b9f196fb20
 begin
-	getRmseBasic(a,b) = mean(sqrt(mean((a - b).^2)))
-	getBiasBasic(a,b) = mean(mean(a - b))
+	getRmse(a,b) = mean(sqrt(mean((a - b).^2)))
+	getBias(a,b) = mean(mean(a - b))
 end
 
 # ╔═╡ d66e453f-de50-42a5-a821-508e23b44b10
+"""
 begin
 	function getPropertyPost(MCMC, name)
 		Base.getproperty(MCMC, :Post) |> 
@@ -54,13 +55,16 @@ begin
 		    x -> Base.getproperty(x, name) 
 	end
 end
+"""
 
 # ╔═╡ 3468403a-3ae8-4635-9fd9-66538be96315
+"""
 begin
 	getRmse(MCMC, name) = mean(sqrt(mean((getPropertyPost(MCMC, name) .- getPropertyTrue(MCMC, name)).^2)))
 	getBias(MCMC, name) = mean(mean(getPropertyPost(MCMC, name) .- getPropertyTrue(MCMC, name)))
 	getCorr(MCMC, name) = cor(getPropertyPost(MCMC, name), getPropertyTrue(MCMC, name))
 end
+"""
 
 # ╔═╡ 74c8ac72-0701-4a5a-8409-0d93e6022503
 """
@@ -77,10 +81,10 @@ function setTrueParaRtIrt(Cond;
 	
 )
 	truePara = InputPara()
-	truePara.a = rand(Truncated.(Normal(1., sqrt(0.2)),0,Inf), Cond.nItem)
-	truePara.b = rand(Normal(0., sqrt(0.5)), Cond.nItem)
-	truePara.λ = rand(Truncated(Normal(4., sqrt(0.2) ), 0, Inf), Cond.nItem)
-	truePara.σ²t = rand(Truncated.(Normal(0.3, sqrt(0.5)), 0, Inf), Cond.nItem)
+	truePara.a = rand(Truncated.(Normal(1., (0.2)),0,Inf), Cond.nItem)
+	truePara.b = rand(Normal(0., (0.5)), Cond.nItem)
+	truePara.λ = rand(Truncated(Normal(4., (0.2) ), 0, Inf), Cond.nItem)
+	truePara.σ²t = rand(Truncated.(Normal(0.3, (0.5)), 0, Inf), Cond.nItem)
 	trueStd = Diagonal([trueStdRa, trueStdRt])
     trueCor = [1. trueCorr; trueCorr 1.]
 	truePara.Σp = trueStd * trueCor * trueStd
@@ -99,8 +103,8 @@ function setTrueParaMlIrt(Cond;
 )
 	truePara = InputPara()
 	#truePara.θ = θ
-	truePara.a = rand(Truncated.(Normal(1., sqrt(0.2)),0,Inf), Cond.nItem)
-	truePara.b = rand(Normal(0., sqrt(0.5)), Cond.nItem)
+	truePara.a = rand(Truncated.(Normal(1., (0.2)),0,Inf), Cond.nItem)
+	truePara.b = rand(Normal(0., (0.5)), Cond.nItem)
 	truePara.β = rand(MvNormal(zeros(1), I(1)), Cond.nFeat)'
 	return truePara 
 end
@@ -169,30 +173,142 @@ function setDataRtIrt(Cond, truePara)
 
 end
 
-# ╔═╡ 7fa851f0-f16d-43d1-af39-a992f5764c88
+# ╔═╡ e3e68b65-9e25-49c7-8a8f-07b34dfa1b0f
+md"""
+### Cross and Latent
+"""
+
+# ╔═╡ 732cc1f5-549e-492f-a37d-86ed70cdb7b8
 """
 """
-function setDataRtIrtLatent(Cond, truePara)
+function setTrueParaRtIrtCross(Cond;
+	a = [],
+	b = [],
+	ρ = [],
+	λ = [],
+	σ²t = [],
+	trueStdRa=1.,
+	trueStdRt=1.
+	
+)
+	truePara = ex.InputPara()
+	truePara.a = rand(Truncated.(Normal(1., (0.2)),0,Inf), Cond.nItem)
+	truePara.b = rand(Normal(0., (0.5)), Cond.nItem)
+	truePara.λ = rand(Truncated(Normal(3., (0.2) ), 0, Inf), Cond.nItem)
+	truePara.σ²t = rand(Truncated.(Normal(0.3, (0.5)), 0, Inf), Cond.nItem)
+	trueStd = Diagonal([trueStdRa, trueStdRt])
+    trueCor = I(2)
+	truePara.Σp = trueStd * trueCor * trueStd
+	truePara.ρ = rand( Truncated.(Normal( 0, (0.1)),0,1), Cond.nItem)
+	return truePara 
+end
+
+# ╔═╡ f8e59e9a-16d6-4e4e-b630-f81f593d9f01
+
+"""
+	setDataRtIrtCross(Cond, truePara; type)
+
+### Arguments.
+
+	- type: "norm", "tail", "skew"
+"""
+function setDataRtIrtCross(Cond, truePara; type)
 
 	## structure
-	trueX = Array{Float64}(undef, Cond.nSubj, Cond.nFeat)
-	#trueX[:,1] = rand(Bernoulli(0.5), Cond.nSubj)
-	trueX[:,1:end] = rand(Normal(0, 1.), Cond.nSubj, (Cond.nFeat))
 
 	## ra and rt
-    trueMean = trueX * truePara.β
-	#noise = cholesky(Symmetric(truePara.Σp)).L * randn(2,Cond.nSubj)
 	noise = rand(MvNormal(zeros(2), truePara.Σp), Cond.nSubj)
-    trueSubj = trueMean .+ noise'
+    trueSubj = noise'
 	truePara.θ = trueSubj[:,1]
 	truePara.ζ = trueSubj[:,2]
-	#truePara.Σp = cov(trueSubj')
-	## t(2)
-	#truePara.τ = trueSubj'[:,2] ./ sqrt.(rand(Chisq(2), Cond.nSubj) ./ 2)
-	## beta(0.5,0.5)
-	#truePara.τ = quantile(Beta(0.5, 0.5), cdf(Normal(0, 1), trueSubj'[:,2]))
-	## gamma(2.0,2.0)
-	#truePara.τ = quantile(Gamma(2.0, 2.0), cdf(Normal(0, 1), trueSubj'[:,2]))
+
+	## irt
+    truePr =  truePara.a' .* (truePara.θ .- truePara.b') 
+    trueY = rand.(BernoulliLogit.(truePr))
+
+	## rt
+    μt =  truePara.λ' .- truePara.ζ .- truePara.θ  * truePara.ρ'
+
+    if type == "norm"
+        trueT = μt .+ sqrt.(truePara.σ²t')*randn()
+    elseif type == "tail"
+        trueT = μt .+ rand.(Truncated.(Cauchy.(0, sqrt.(truePara.σ²t')),-6,6))
+        #trueT = μt .+ abs.(μt).*sqrt.(truePara.σ²t').*randn()
+        #trueT = μt .+ 0.5*abs.(μt).*randn()
+    elseif type == "skew"
+        trueT = μt .+ rand.(Gamma.(sqrt.(truePara.σ²t'), 1)) .- 2
+    end
+    trueT = clamp.(trueT, 0,6)
+    trueT = exp.(trueT)
+
+	## collect
+	trueData = ex.InputData(Y=trueY, T=trueT)
+
+
+	return trueData
+
+end
+
+# ╔═╡ 54a39e13-807d-49ba-9cd0-710c7e500eff
+"""
+"""
+function setTrueParaRtIrtLatent(Cond;
+	a = [],
+	b = [],
+	β = [],
+	λ = [],
+	σ²t = [],
+	trueStdRa=1.,
+	trueStdRt=1.
+	
+)
+	truePara = ex.InputPara()
+	truePara.a = rand(Truncated.(Normal(1., (0.2)),0,Inf), Cond.nItem)
+	truePara.b = rand(Normal(0., (0.5)), Cond.nItem)
+	truePara.λ = rand(Truncated(Normal(3., (0.2) ), 0, Inf), Cond.nItem)
+	truePara.σ²t = rand(Truncated.(Normal(0.3, (0.5)), 0, Inf), Cond.nItem)
+	trueStd = Diagonal([trueStdRa, trueStdRt])
+    trueCor = I(2)
+	truePara.Σp = trueStd * trueCor * trueStd
+    trueρ = rand(Truncated(Normal(0,0.5),-1,1))
+	truePara.β = [rand( Normal( 0, (0.5)), Cond.nFeat); trueρ]
+	return truePara 
+end
+
+
+# ╔═╡ 7fa851f0-f16d-43d1-af39-a992f5764c88
+
+"""
+	setDataRtIrtLatent(Cond, truePara; type)
+
+### Arguments.
+
+	- type: "norm", "tail", "skew"
+"""
+function setDataRtIrtLatent(Cond, truePara; type)
+
+	## structure
+
+	## ra and rt
+	truePara.θ = randn(Cond.nSubj)
+
+    trueX = rand(Normal(0, 1.), Cond.nSubj, Cond.nFeat)
+    x = [trueX truePara.θ]
+
+
+    ## rt
+    μt = x * truePara.β #zeros(Cond.nSubj) # 
+
+    if type == "norm"
+        truePara.ζ = μt .+ randn(Cond.nSubj)
+    elseif type == "tail"
+        truePara.ζ = μt .+ rand(Truncated(Cauchy(0, 1),-6,6),Cond.nSubj)
+        #trueT = μt .+ abs.(μt).*sqrt.(truePara.σ²t').*randn()
+        #trueT = μt .+ 0.5*abs.(μt).*randn()
+    elseif type == "skew"
+        truePara.ζ = μt .+ rand(Gamma(0.5, 1), Cond.nSubj) .- 0.5
+        #truePara.ζ = μt .+ rand(LogNormal(0., 1))
+    end
 
 
 	## irt
@@ -200,16 +316,16 @@ function setDataRtIrtLatent(Cond, truePara)
     trueY = rand.(BernoulliLogit.(truePr))
 
 	## rt
-    μt =  truePara.λ' .- truePara.ζ 
-    trueT = rand.(Truncated.(LogNormal.(μt, sqrt.(truePara.σ²t')), 0, Inf))
+    trueμt =  truePara.λ' .- truePara.ζ
+    trueT = rand.(LogNormal.(trueμt, sqrt.(truePara.σ²t')))
 
 	## collect
-	trueData = InputData(Y=trueY, X=trueX, T=trueT)
-
+	trueData = ex.InputData(Y=trueY, T=trueT, X=trueX)
 
 	return trueData
 
 end
+
 
 # ╔═╡ 7b1041d1-bb69-412a-80e8-c0ab731545f4
 """
@@ -248,6 +364,157 @@ function testingDict(nSubj::Int, nItem::Int , nFeat::Int)
 	return data
 end
 
+
+# ╔═╡ d792cfdb-503f-4986-a62d-02338db36ac4
+
+"""
+	comparePara(Mcmc; name=:a)
+"""
+function comparePara(Mcmc; name=:a)
+
+    if name==:β
+        True = getfield(Mcmc.truePara, Symbol(name))
+        Esti = vec(getfield(Mcmc.Post.mean, Symbol(name))[2:end,:])
+    else
+        True = getfield(Mcmc.truePara, Symbol(name))
+        Esti = getfield(Mcmc.Post.mean, Symbol(name))
+    end
+    Diff = abs.(Esti .- True)
+    
+    names = ["Esti", "True", "|Diff|"]
+    values = [Esti True Diff]
+    values = round.(values, digits=3)
+
+
+    # print title
+    println(join(names, "\t"))
+    println(join(fill("=======", length(names)), "\t"))
+    # print data
+    for row in 1:size(values, 1)     
+        rounded_row = round.(values[row,:], digits=3)
+        println(join(rounded_row, "\t"))
+    end
+end
+
+
+# ╔═╡ 95258e82-f774-43c3-8056-62c935512a7c
+
+## Start a one-condition Simulation Study!
+"""
+    runSimulation(Cond, truePara; Para=(:a, :b, :λ, :σ²t), funcData=setDataRtIrt, funcGibbs=GibbsRtIrt)
+
+### Arguments.
+	- Para. can be any name in the `InputPara`-struct (:a, :b, :λ, :σ²t, :ρ, :β, :Σp).
+	- funcData.
+	- funcGibbs.
+
+"""
+function runSimulation(Cond, truePara; Para=(:a, :b, :λ, :σ²t), funcData=setDataRtIrt, funcGibbs=GibbsRtIrt)
+    fooData = getfield(Main, Symbol(funcData))
+    fooGibbs = getfield(Main, Symbol(funcGibbs))
+
+    Run = Dict(Symbol(:True) => [], [run => Dict() for run in 1:Cond.nRep]...)
+    True = Dict(p => [] for p in Para)
+    for p in Para
+        True[p] = vec(getfield(truePara, p))
+    end
+    Run[:True] = True
+
+    for run in 1:Cond.nRep
+
+        # 在中間位置加入清理
+        if run == (Cond.nRep/2)
+            GC.gc()
+        end
+
+        ## Data.
+        Data = fooData(Cond, truePara)
+
+        ## Fit.
+        Mcmc = fooGibbs(Cond, truePara=truePara, Data=Data)
+        sample!(Mcmc)   
+
+        ## Save Post Means and Dic.
+        Post = Dict(Symbol(:Dic) => [], [p => [] for p in Para]...)
+        for p in Para
+            Post[p] = getfield(Mcmc.Post.mean, p)
+        end
+        Post[:Dic] = [getDic(Mcmc).DIC]
+        Run[run] = Post
+    end
+    return Run
+end
+
+# ╔═╡ 14a223bc-4419-4773-94b8-82aef171c285
+md"""
+
+### A Basic Example about Conducting a Simulation.
+
+```
+
+using ExtendedRtIrtModeling,
+    Random,
+    Plots,
+    TidierPlots,
+    DataFrames,
+    JLD2
+
+## ==========================
+##  Just for testing.
+## ==========================
+
+
+## 30104
+begin
+## Conditions.
+Random.seed!(1234)
+
+## Manipulate the conditions
+# df30104 = Dict("$(J)-$(K)" => Dict() for J in (250, 500, 1000), K in (15) )
+for J in (250, 500, 1000), K in (15)
+    @time begin 
+
+        # 1. 設定條件
+        Cond = setCond(nSubj=J, nItem=K, nRep=100, nIter=10_000, nChain=3)
+        truePara = setTrueParaRtIrt(Cond)
+        
+        # 2. 執行模擬
+        res = runSimulation(Cond, truePara; 
+                           funcData=setDataRtIrt, 
+                           funcGibbs=GibbsRtIrt, 
+                           Para=(:a, :b, :λ, :σ²t, :β, :Σp))
+
+        # 3. 立即儲存這個條件的結果
+        condName = "$(J)-$(K)"
+        @save "sim30104_$(condName).jld2" res
+
+        # 4. 清理記憶體
+        GC.gc()
+
+        println("===== (=^・^=) ===== Condition $(condName) is End! ===== (=^・^=) =====")
+    
+    end    
+end
+
+
+# 5. 最後如果需要合併所有結果
+df30104 = Dict()
+for J in (250, 500, 1000), K in (15)
+    condName = "$(J)-$(K)"
+    @load "sim30104_$(condName).jld2" res
+    df30104[condName] = res
+end
+
+# 6. 儲存完整結果
+@save "sim30104_full.jld2" df30104
+
+end
+
+
+```
+
+
+"""
 
 # ╔═╡ b8a44521-8622-4b83-9518-a2da3107d91e
 """
@@ -568,9 +835,16 @@ version = "17.4.0+2"
 # ╠═201f594a-cc89-4236-957f-ed88953b9ebd
 # ╠═595dbac9-1bb6-4975-928c-5a53f28eae56
 # ╠═838de637-d131-480b-99d8-ed55433f41de
+# ╠═e3e68b65-9e25-49c7-8a8f-07b34dfa1b0f
+# ╠═732cc1f5-549e-492f-a37d-86ed70cdb7b8
+# ╠═f8e59e9a-16d6-4e4e-b630-f81f593d9f01
+# ╠═54a39e13-807d-49ba-9cd0-710c7e500eff
 # ╠═7fa851f0-f16d-43d1-af39-a992f5764c88
 # ╠═7b1041d1-bb69-412a-80e8-c0ab731545f4
 # ╠═cf125fa8-18c0-4f44-80fd-4447c45a5876
+# ╠═d792cfdb-503f-4986-a62d-02338db36ac4
+# ╠═95258e82-f774-43c3-8056-62c935512a7c
+# ╠═14a223bc-4419-4773-94b8-82aef171c285
 # ╠═b8a44521-8622-4b83-9518-a2da3107d91e
 # ╠═cf9fd679-b387-476f-8401-46082d4f6c93
 # ╠═8d47ab56-b591-4d18-85c2-03550463d90a
