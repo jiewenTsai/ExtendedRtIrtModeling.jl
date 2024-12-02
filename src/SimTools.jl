@@ -191,7 +191,7 @@ function setTrueParaRtIrtCross(Cond;
 	trueStdRt=1.
 	
 )
-	truePara = ex.InputPara()
+	truePara = InputPara()
 	truePara.a = rand(Truncated.(Normal(1., (0.2)),0,Inf), Cond.nItem)
 	truePara.b = rand(Normal(0., (0.5)), Cond.nItem)
 	truePara.λ = rand(Truncated(Normal(3., (0.2) ), 0, Inf), Cond.nItem)
@@ -242,7 +242,7 @@ function setDataRtIrtCross(Cond, truePara; type)
     trueT = exp.(trueT)
 
 	## collect
-	trueData = ex.InputData(Y=trueY, T=trueT)
+	trueData = InputData(Y=trueY, T=trueT)
 
 
 	return trueData
@@ -262,7 +262,7 @@ function setTrueParaRtIrtLatent(Cond;
 	trueStdRt=1.
 	
 )
-	truePara = ex.InputPara()
+	truePara = InputPara()
 	truePara.a = rand(Truncated.(Normal(1., (0.2)),0,Inf), Cond.nItem)
 	truePara.b = rand(Normal(0., (0.5)), Cond.nItem)
 	truePara.λ = rand(Truncated(Normal(3., (0.2) ), 0, Inf), Cond.nItem)
@@ -320,7 +320,7 @@ function setDataRtIrtLatent(Cond, truePara; type)
     trueT = rand.(LogNormal.(trueμt, sqrt.(truePara.σ²t')))
 
 	## collect
-	trueData = ex.InputData(Y=trueY, T=trueT, X=trueX)
+	trueData = InputData(Y=trueY, T=trueT, X=trueX)
 
 	return trueData
 
