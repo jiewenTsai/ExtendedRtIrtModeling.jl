@@ -423,8 +423,8 @@ function runSimulation(Cond, truePara; Para=(:a, :b, :λ, :σ²t), funcData=setD
     for run in 1:Cond.nRep
 
         # 在中間位置加入清理
-        if run == (Cond.nRep/2)
-            GC.gc()
+        if mod(run, Cond.nRep/10) == 0
+            GC.gc(true)
         end
 
         ## Data.
@@ -491,7 +491,7 @@ for J in (250, 500, 1000), K in (15)
         # 4. 清理記憶體
         GC.gc()
 
-        println("===== (=^・^=) ===== Condition $(condName) is End! ===== (=^・^=) =====")
+        println("===== (=^・^=) ===== Condition $(condName) DONE! ===== (=^・^=) =====")
     
     end    
 end
