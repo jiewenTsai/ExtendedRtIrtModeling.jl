@@ -230,7 +230,7 @@ function setDataRtIrtCross(Cond, truePara; type)
     μt =  truePara.λ' .- truePara.ζ .- truePara.θ  * truePara.ρ'
 
     if type == "norm"
-        trueT = μt .+ sqrt.(truePara.σ²t')*randn()
+        trueT = μt .+ rand.(Normal.(0, sqrt.(truePara.σ²t')))
     elseif type == "tail"
         trueT = μt .+ rand.(Truncated.(Cauchy.(0, sqrt.(truePara.σ²t')),-6,6))
         #trueT = μt .+ abs.(μt).*sqrt.(truePara.σ²t').*randn()
