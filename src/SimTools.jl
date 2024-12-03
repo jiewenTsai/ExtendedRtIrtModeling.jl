@@ -212,7 +212,7 @@ end
 
 	- type: "norm", "tail", "skew"
 """
-function setDataRtIrtCross(Cond, truePara; type)
+function setDataRtIrtCross(Cond, truePara; type="norm")
 
 	## structure
 
@@ -285,7 +285,7 @@ end
 
 	- type: "norm", "tail", "skew"
 """
-function setDataRtIrtLatent(Cond, truePara; type)
+function setDataRtIrtLatent(Cond, truePara; type="norm")
 
 	## structure
 
