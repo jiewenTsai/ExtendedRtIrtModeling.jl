@@ -250,7 +250,9 @@ function getLogLikelihoodRtIrtCrossQr(Cond,Data; P=Para)
 	η = [P.θ P.ζ]
     μη = zeros(Cond.nSubj, 2) #x * reshape(P.β, Cond.nFeat+1, 2)
 	Ση = reshape(P.Σp, 2,2)
+
 	logPdf = [sum(logpdf.(BernoulliLogit.(pr), Data.Y)) sum(logpdf.(Normal.(μt, sqrt.(P.σ²t' .* k2e)), Data.logT)) sum([logpdf(MvNormal(μη[i,:], Ση), η[i,:]) for i in 1:Cond.nSubj])]
+	#logPdf = [sum(logpdf.(BernoulliLogit.(pr), Data.Y)) sum(logpdf.(Normal.(μt, sqrt.( P.σ²t')), Data.logT)) sum([logpdf(MvNormal(μη[i,:], Ση), η[i,:]) for i in 1:Cond.nSubj])]
 
     return sum(logPdf)
 end

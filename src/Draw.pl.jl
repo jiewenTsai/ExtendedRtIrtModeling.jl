@@ -263,7 +263,7 @@ end
 # ╔═╡ 84e5e58b-02cc-4fd0-8a60-67b393f8b8fe
 """
 """
-function drawItemTimeResidualCross(Cond,Data,Para;δa=1e-10, δb=1e-10)
+function drawItemTimeResidualCross(Cond,Data,Para;δa=0.001, δb=0.001)
     parA = δa + Cond.nSubj/2
     parB = δb .+ sum( (Data.logT .- Para.λ' .+ Para.ζ .+ Para.θ * Para.ρ').^2, dims=1) ./2
     σ²t = rand.(InverseGamma.(parA, parB'))
@@ -274,7 +274,7 @@ end
 # ╔═╡ 982acb19-e7b1-4cd6-a98d-940d1a4c1565
 """
 """
-function drawItemTimeResidualCrossQr(Cond,Data,Para;δa=1e-10, δb=1e-10)
+function drawItemTimeResidualCrossQr(Cond,Data,Para;δa=0.001, δb=0.001)
 	k1Rt = (1 - 2 * Cond.qRt) / (Cond.qRt * (1 - Cond.qRt))
     k2Rt = 2 / (Cond.qRt * (1 - Cond.qRt))
     k1e = k1Rt.*Para.ν
@@ -453,7 +453,7 @@ end
 # ╔═╡ 30dd078c-b514-4130-aec8-5c04f63c4b02
 """
 """
-function drawSubjCorrCross(Cond,Data,Para;μρ=0., σρ=1e+10)
+function drawSubjCorrCross(Cond,Data,Para;μρ=0., σρ=1)
 	parV = 1 ./( 1/σρ^2 .+ sum(Para.θ.^2 ./ Para.σ²t', dims=1 ))
 	parM = parV .* (μρ/σρ^2 .+  sum( (Para.θ .* (Para.λ' .- Para.ζ .- Data.logT)) ./ Para.σ²t' , dims=1))
 	ρ = rand.(Normal.(parM, sqrt.(parV)))
@@ -464,7 +464,11 @@ end
 # ╔═╡ 1728fba4-1bfb-4630-a5da-41ff2df84f03
 """
 """
-function drawSubjCorrCrossQr(Cond,Data,Para;μρ=0., σρ=1e+10)
+function drawSubjCorrCrossQr(Cond,Data,Para;μρ=0., σρ=1)
+
+    @assert 0 < Cond.qRt < 1 "qRt must be between 0 and 1"
+    @assert all(Para.ν .> 0) "ν must be positive"
+
     k1Rt = (1 - 2 * Cond.qRt) / (Cond.qRt * (1 - Cond.qRt))
     k2Rt = 2 / (Cond.qRt * (1 - Cond.qRt))
     k1e = k1Rt.*Para.ν

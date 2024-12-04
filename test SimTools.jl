@@ -5,6 +5,7 @@ import .ExtendedRtIrtModeling as ex
 using Distributions,
     LinearAlgebra,
     Plots,
+    StatsPlots,
     HTTP,
     CSV,
     DataFrames,
@@ -12,7 +13,111 @@ using Distributions,
     JLD2
 
 
-Cond = ex.setCond(nChain=2, nIter=3000, nSubj=1000, nItem=10)
+
+
+Random.seed!(1234)
+Cond = ex.setCond(nChain=2, nIter=3000, nSubj=500, nItem=15, qRt=0.25)
+True = ex.setTrueParaRtIrtCross(Cond)
+Data = ex.setDataRtIrtCross(Cond, True, type="tail")
+Mcmc = ex.GibbsRtIrtCrossQr(Cond, Data=Data, truePara=True)
+ex.sample!(Mcmc)
+
+
+DataNorm = ex.setDataRtIrtCross(Cond, True, type="norm")
+DataSkew = ex.setDataRtIrtCross(Cond, True, type="skew")
+DataTail = ex.setDataRtIrtCross(Cond, True, type="tail")
+
+density( vec(DataNorm.logT) )
+density!( vec(DataSkew.logT))
+density!( vec(DataTail.logT))
+
+
+ex.coef(Mcmc)
+ex.comparePara(Mcmc, name=:σ²t )
+ex.comparePara(Mcmc, name=:λ )
+ex.comparePara(Mcmc, name=:ρ )
+ex.comparePara(Mcmc, name=:b )
+
+
+Mcmc.Para.ν
+
+comboJK02 = [(1000,30)]
+comboQT25 = [(0.25, "norm"), (0.25, "skew")]
+
+for (J,K) in comboJK02, (Q,Type) in comboQT25
+    #try
+        @time begin 
+            # 1. 設定條件
+            Cond = ex.setCond(nSubj=J, nItem=K, nRep=10, nIter=2_000, nChain=2, qRt=Q)
+            True = ex.setTrueParaRtIrtCross(Cond)
+            
+            # 2. 執行模擬
+            Data = ex.setDataRtIrtCross(Cond, True, type=Type)
+            Mcmc = ex.GibbsRtIrtCrossQr(Cond, Data=Data, truePara=True)
+            ex.sample!(Mcmc)
+
+            """
+            res = ex.runSimulation(Cond, truePara; 
+                            funcData=setDataRtIrtCross, 
+                            funcGibbs=GibbsRtIrtCrossQr, 
+                            typeName=Type,
+                            Para=(:a, :b, :λ, :σ²t, :ρ, :Σp))
+            """
+            # 3. 立即儲存這個條件的結果
+            condName = "$(J)-$(K)-$(Q)-$(Type)"
+            #@save "sim30200_$(condName).jld2" res
+
+            # 4. 清理記憶體
+            #res = nothing
+            GC.gc(true)
+
+            println("===== (=^.^=) ===== Condition $(condName) DONE! ===== (=^.^=) =====")
+        
+        end    
+    """ 
+    catch e
+        condName = "$(J)-$(K)-$(Q)-$(Type)"
+        println("跳過條件 $(condName) 發生錯誤: ", e)
+        continue  # 直接進行下一次迭代
+    end
+    """
+end
+
+
+
+
+
+ex.coef(Mcmc)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Cond = ex.setCond(nChain=2, nIter=3000, nSubj=500, nItem=10)
 truePara = ex.setTrueParaRtIrt(Cond, trueCorr=0.5)
 Data = ex.setDataRtIrtNull(Cond, truePara)
 #Data2 = ex.setDataMlIrt(Cond, truePara)
