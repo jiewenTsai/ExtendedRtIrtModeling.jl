@@ -499,7 +499,7 @@ function runSimulation(Cond, truePara; Para=(:a, :b, :λ, :σ²t), funcData=setD
         ## Save Post Means and Dic.
         Post = Dict(
 			Symbol(:Dic) => [], 
-			Symbol(:Diag) => Vector{NamedTuple}(), 
+			Symbol(:Diag) => (ess = nothing, rhat = nothing, essN = "", rhatN = ""), 
 			[p => [] for p in Para]...)
         for p in Para
             Post[p] = getfield(MCMC.Post.mean, p)
