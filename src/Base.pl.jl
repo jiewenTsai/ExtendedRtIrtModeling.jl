@@ -156,8 +156,8 @@ function getPrecisTable(chains)
     )
     tab1 = summarystats(chains)[:,[:mean, :std, :ess, :rhat]] |> DataFrame
     tab2 = Dict(
-        "q05" => quantile(chains, q=[0.05])[:,2],
-        "q95" => quantile(chains, q=[0.95])[:,2]
+        "q025" => quantile(chains, q=[0.025])[:,2],
+        "q975" => quantile(chains, q=[0.975])[:,2]
     ) |> DataFrame
     tab3 = Dict("Sig" => [i ? "" : "*" for i in (0. .> tab2[:,1]) .& (0. .< tab2[:,2])]) |> DataFrame
 

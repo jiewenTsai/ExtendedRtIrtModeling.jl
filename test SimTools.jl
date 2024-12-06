@@ -14,12 +14,12 @@ using Distributions,
 
 
 
-
 Random.seed!(1234)
 Cond = ex.setCond(nChain=2, nIter=3000, nSubj=500, nItem=15, qRt=0.25)
 True = ex.setTrueParaRtIrtCross(Cond)
-Data = ex.setDataRtIrtCross(Cond, True, type="tail")
-Mcmc = ex.GibbsRtIrtCrossQr(Cond, Data=Data, truePara=True)
+#Data = ex.setDataRtIrt(Cond, True)
+Data = ex.setDataRtIrtCross(Cond, True, type="skew")
+Mcmc = ex.GibbsRtIrtCross(Cond, Data=Data, truePara=True)
 ex.sample!(Mcmc)
 
 
@@ -28,16 +28,19 @@ DataSkew = ex.setDataRtIrtCross(Cond, True, type="skew")
 DataTail = ex.setDataRtIrtCross(Cond, True, type="tail")
 
 density( vec(DataNorm.logT) )
-density!( vec(DataSkew.logT))
-density!( vec(DataTail.logT))
+density( vec(DataSkew.logT))
+density( (DataTail.logT))
 
+
+
+rand(LogNormal(0, sqrt.(True.σ²t')), Cond.nSubj)
 
 ex.coef(Mcmc)
 ex.comparePara(Mcmc, name=:σ²t )
 ex.comparePara(Mcmc, name=:λ )
 ex.comparePara(Mcmc, name=:ρ )
 ex.comparePara(Mcmc, name=:b )
-
+ex.comparePara(Mcmc, name=:β )
 
 Mcmc.Para.ν
 
