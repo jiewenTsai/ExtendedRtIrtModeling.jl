@@ -95,7 +95,7 @@ end
 # ╔═╡ 33582955-b9e0-406f-b0ad-995b2d630236
 """
 """
-function drawItemDifficulty(Data, Para; μb₀=0., σb₀=1)
+function drawItemDifficulty(Data, Para; μb₀=0., σb₀=1e+10)
 	parV = 1 ./ (1/σb₀^2 .+  sum( Para.a'.^2 .* Para.ω, dims=1)')
     parM = parV .* ( μb₀/σb₀^2 .- sum( Para.a' .* ( Data.κ .- Para.θ*Para.a'.*Para.ω), dims=1) )'
     b = rand.(Normal.(parM, sqrt.(parV))) 
@@ -453,7 +453,7 @@ end
 # ╔═╡ 30dd078c-b514-4130-aec8-5c04f63c4b02
 """
 """
-function drawSubjCorrCross(Cond,Data,Para;μρ=0., σρ=1)
+function drawSubjCorrCross(Cond,Data,Para;μρ=0., σρ=1e+10)
 	parV = 1 ./( 1/σρ^2 .+ sum(Para.θ.^2 ./ Para.σ²t', dims=1 ))
 	parM = parV .* (μρ/σρ^2 .+  sum( (Para.θ .* (Para.λ' .- Para.ζ .- Data.logT)) ./ Para.σ²t' , dims=1))
 	ρ = rand.(Normal.(parM, sqrt.(parV)))
@@ -464,7 +464,7 @@ end
 # ╔═╡ 1728fba4-1bfb-4630-a5da-41ff2df84f03
 """
 """
-function drawSubjCorrCrossQr(Cond,Data,Para;μρ=0., σρ=1)
+function drawSubjCorrCrossQr(Cond,Data,Para;μρ=0., σρ=1e+10)
 
     @assert 0 < Cond.qRt < 1 "qRt must be between 0 and 1"
     @assert all(Para.ν .> 0) "ν must be positive"
