@@ -312,7 +312,7 @@ function drawQrWeightsCrossQr(Cond,Data,Para)
 	#ν = rand.(ge.GeneralizedInverseGaussian.(0.5,parB,parA ))
 	#ν = 1 ./ rand.(ge.GeneralizedInverseGaussian.(-0.5,parA,parB ))
 
-
+    ν = clamp.(ν, 1e-10, Inf)
     return  ν
 end
 
@@ -332,6 +332,7 @@ function drawQrWeightsLatentQr(Cond,Data,Para)
 	#ν = rand.(ge.GeneralizedInverseGaussian.(0.5,parB,parA))
 	#ν = 1 ./ rand.(ge.GeneralizedInverseGaussian.(-0.5,parA,parB ))
 
+    ν = clamp.(ν, 1e-10, Inf)
     return ν
 end
 
