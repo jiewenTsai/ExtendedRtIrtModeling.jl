@@ -25,14 +25,16 @@ mutable struct OutputMetrics
     Bias 
     Corr 
     Dic 
+	Diag
     function OutputMetrics(;
 		Key = [],
         Rmse = [],
         Bias = [],
         Corr = [],
-        Dic = []
+        Dic = [],
+		Diag = []
     )
-        return new(Key, Rmse, Bias, Corr, Dic)
+        return new(Key, Rmse, Bias, Corr, Dic, Diag)
     end
 end
 
@@ -428,6 +430,35 @@ function comparePara(Mcmc; name=:a)
 end
 
 
+# ╔═╡ 8a35299b-8fd9-41d3-8ed1-a88312d1ba43
+"""
+"""
+function checkConvergence(MCMC)
+
+    mcmcRa = MCMC.Post.ra[(MCMC.Cond.nBurnin+1):end, :, :]
+    essRa = Chains(mcmcRa) |> ess_rhat
+
+    mcmcRt = MCMC.Post.rt[(MCMC.Cond.nBurnin+1):end, :, :]
+    essRt = Chains(mcmcRt) |> ess_rhat
+
+    mcmcQr = MCMC.Post.qr[(MCMC.Cond.nBurnin+1):end, :, :]
+    essQr = Chains(mcmcQr) |> ess_rhat
+
+    essLength = length(essRa[:,2]) + length(essRt[:,2]) + count(!isnan, (essQr[:,2]))
+    rhatLength = length(essRa[:,3]) + length(essRt[:,3]) + count(!isnan, vec(essQr[:,3]))
+    essOk = count(essRa[:,2] .> 400) + count(essRt[:,2] .> 400) + count( skipmissing(essQr[:,2] .> 400) )
+    rhatOk = count(essRa[:,3] .< 1.1) + count(essRt[:,3] .< 1.1) + count( skipmissing(essQr[:,3] .< 1.1) )
+
+    Conv = (
+        ess = (essOk / essLength)*100,
+        rhat = (rhatOk / rhatLength)*100,
+        essN = "$(essOk) / $(essLength)",
+        rhatN = "$(rhatOk) / $(rhatLength)"
+        
+    )
+    return Conv
+end
+
 # ╔═╡ 95258e82-f774-43c3-8056-62c935512a7c
 
 ## Start a one-condition Simulation Study!
@@ -462,15 +493,16 @@ function runSimulation(Cond, truePara; Para=(:a, :b, :λ, :σ²t), funcData=setD
         Data = fooData(Cond, truePara; type=typeName)
 
         ## Fit.
-        Mcmc = fooGibbs(Cond, truePara=truePara, Data=Data)
-        sample!(Mcmc)   
+        MCMC = fooGibbs(Cond, truePara=truePara, Data=Data)
+        sample!(MCMC)   
 
         ## Save Post Means and Dic.
-        Post = Dict(Symbol(:Dic) => [], [p => [] for p in Para]...)
+        Post = Dict(Symbol(:Dic) => [], Symbol(:Diag) => [], [p => [] for p in Para]...)
         for p in Para
-            Post[p] = getfield(Mcmc.Post.mean, p)
+            Post[p] = getfield(MCMC.Post.mean, p)
         end
-        Post[:Dic] = [getDic(Mcmc).DIC]
+        Post[:Dic] = [getDic(MCMC).DIC]
+		Post[:Diag] = checkConvergence(MCMC)
         Run[run] = Post
     end
     return Run
@@ -875,6 +907,7 @@ version = "17.4.0+2"
 # ╠═cf125fa8-18c0-4f44-80fd-4447c45a5876
 # ╠═d792cfdb-503f-4986-a62d-02338db36ac4
 # ╠═95258e82-f774-43c3-8056-62c935512a7c
+# ╠═8a35299b-8fd9-41d3-8ed1-a88312d1ba43
 # ╠═14a223bc-4419-4773-94b8-82aef171c285
 # ╠═b8a44521-8622-4b83-9518-a2da3107d91e
 # ╠═cf9fd679-b387-476f-8401-46082d4f6c93
