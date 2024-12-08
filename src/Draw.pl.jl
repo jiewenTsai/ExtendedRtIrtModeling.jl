@@ -100,6 +100,7 @@ function drawItemDifficulty(Data, Para; μb₀=0., σb₀=1e+10)
     parM = parV .* ( μb₀/σb₀^2 .- sum( Para.a' .* ( Data.κ .- Para.θ*Para.a'.*Para.ω), dims=1) )'
     b = rand.(Normal.(parM, sqrt.(parV))) 
 
+    b = clamp.(b, -4, 4)
     return b
 end
 
