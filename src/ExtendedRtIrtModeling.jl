@@ -69,6 +69,7 @@ export
 	coef, 
     precis,
     comparePara,
+    checkConvergence,
     OutputMetrics,
     runSimulation    
 
