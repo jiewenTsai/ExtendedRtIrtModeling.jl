@@ -95,7 +95,7 @@ end
 # ╔═╡ 33582955-b9e0-406f-b0ad-995b2d630236
 """
 """
-function drawItemDifficulty(Data, Para; μb₀=0., σb₀=1e+10)
+function drawItemDifficulty(Data, Para; μb₀=0., σb₀=1)
 	parV = 1 ./ (1/σb₀^2 .+  sum( Para.a'.^2 .* Para.ω, dims=1)')
     parM = parV .* ( μb₀/σb₀^2 .- sum( Para.a' .* ( Data.κ .- Para.θ*Para.a'.*Para.ω), dims=1) )'
     b = rand.(Normal.(parM, sqrt.(parV))) 
@@ -315,7 +315,7 @@ function drawQrWeightsCrossQr(Cond,Data,Para)
 	#ν = rand.(ge.GeneralizedInverseGaussian.(0.5,parB,parA ))
 	#ν = 1 ./ rand.(ge.GeneralizedInverseGaussian.(-0.5,parA,parB ))
 
-    ν = clamp.(ν, 1e-10, Inf)
+    ν = clamp.(ν, 1e-10, 1e+10)
     return  ν
 end
 
@@ -338,7 +338,7 @@ function drawQrWeightsLatentQr(Cond,Data,Para)
 	#ν = rand.(ge.GeneralizedInverseGaussian.(0.5,parB,parA))
 	#ν = 1 ./ rand.(ge.GeneralizedInverseGaussian.(-0.5,parA,parB ))
 
-    ν = clamp.(ν, 1e-10, Inf)
+    ν = clamp.(ν, 1e-10, 1e+10)
     return ν
 end
 
@@ -348,7 +348,7 @@ md"### β Coefficients"
 # ╔═╡ 66562193-7978-4fb8-b8bd-3430ec74d30a
 """
 """
-function getSubjCoefficientsMlIrt(Cond,Data,Para; μβ₀=0., σβ₀=1e+10 )
+function getSubjCoefficientsMlIrt(Cond,Data,Para; μβ₀=0., σβ₀=1 )
 	η = Para.θ
 	x = [ones(Cond.nSubj) Data.X]
 
@@ -377,7 +377,7 @@ end
 # ╔═╡ 62e6e5bc-ba4f-4c81-94d5-3514b4cc0f5c
 """
 """
-function drawSubjCoefficients(Cond,Data,Para; μβ₀=0., σβ₀=1e+10 )
+function drawSubjCoefficients(Cond,Data,Para; μβ₀=0., σβ₀=1 )
 
     η = [Para.θ Para.ζ]
     x = [ones(Cond.nSubj) Data.X]
@@ -396,7 +396,7 @@ end
 """
     drawSubjCoefficientsLatentQr(Cond,Data,Para; μβ₀=0., σβ₀=1e+10 ) --> β
 """
-function drawSubjCoefficientsLatent(Cond,Data,Para; μβ₀=0., σβ₀=1e+10 )
+function drawSubjCoefficientsLatent(Cond,Data,Para; μβ₀=0., σβ₀=1 )
     x = [ones(Cond.nSubj) Data.X Para.θ]
     """
     parV = 1 ./ (1/σβ₀^2 .+ sum(x.^2 ./ Para.Σp[2,2], dims=1))
@@ -425,7 +425,7 @@ md"""
 """
     drawSubjCoefficientsLatentQr(Cond,Data,Para; μβ₀=0., σβ₀=1e+10 ) --> β
 """
-function drawSubjCoefficientsLatentQr(Cond,Data,Para; μβ₀=0., σβ₀=1e+10 )
+function drawSubjCoefficientsLatentQr(Cond,Data,Para; μβ₀=0., σβ₀=1 )
     x = [ones(Cond.nSubj) Data.X Para.θ]
     k1Rt = (1 - 2 * Cond.qRt) / (Cond.qRt * (1 - Cond.qRt))
     k2Rt = 2 / (Cond.qRt * (1 - Cond.qRt))
@@ -443,7 +443,7 @@ end
 """
     getSubjCoefficientsLatentQr(Cond,Data,Para; μβ₀=0., σβ₀=1e+10 ) --> β
 """
-function getSubjCoefficientsLatentQr(Cond,Data,Para; μβ₀=0., σβ₀=1e+10 )
+function getSubjCoefficientsLatentQr(Cond,Data,Para; μβ₀=0., σβ₀=1 )
     x = [ones(Cond.nSubj) Data.X Para.θ]
     k1Rt = (1 - 2 * Cond.qRt) / (Cond.qRt * (1 - Cond.qRt))
     k2Rt = 2 / (Cond.qRt * (1 - Cond.qRt))
@@ -460,7 +460,7 @@ end
 # ╔═╡ 30dd078c-b514-4130-aec8-5c04f63c4b02
 """
 """
-function drawSubjCorrCross(Cond,Data,Para;μρ=0., σρ=1e+10)
+function drawSubjCorrCross(Cond,Data,Para;μρ=0., σρ=1)
 	parV = 1 ./( 1/σρ^2 .+ sum(Para.θ.^2 ./ Para.σ²t', dims=1 ))
 	parM = parV .* (μρ/σρ^2 .+  sum( (Para.θ .* (Para.λ' .- Para.ζ .- Data.logT)) ./ Para.σ²t' , dims=1))
 	ρ = rand.(Normal.(parM, sqrt.(parV)))
@@ -471,7 +471,7 @@ end
 # ╔═╡ 1728fba4-1bfb-4630-a5da-41ff2df84f03
 """
 """
-function drawSubjCorrCrossQr(Cond,Data,Para;μρ=0., σρ=1e+10)
+function drawSubjCorrCrossQr(Cond,Data,Para;μρ=0., σρ=1)
 
     @assert 0 < Cond.qRt < 1 "qRt must be between 0 and 1"
     @assert all(Para.ν .> 0) "ν must be positive"
