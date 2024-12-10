@@ -1,7 +1,7 @@
 name = "ExtendedRtIrtModeling"
 uuid = "1fd685a6-88ce-5cc9-9afc-ec285d232689"
 authors = ["Jie-Wen Tsai <tsai.jiewen@gmail.com>"]
-version = "0.2.3"
+version = "0.2.4"
 
 [deps]
 Markdown = "d6f4376e-aef5-505a-96c1-9c027394607a"

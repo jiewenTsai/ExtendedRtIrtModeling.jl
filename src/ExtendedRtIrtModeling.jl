@@ -50,6 +50,7 @@ export
     getRmse, 
     getCorr,
     getDic,
+    getMetrics,
 	#evaluate,
 
 	## sample!
