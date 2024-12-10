@@ -201,7 +201,7 @@ function setTrueParaRtIrtCross(Cond;
 	trueStd = Diagonal([trueStdRa, trueStdRt])
     trueCor = I(2)
 	truePara.Σp = trueStd * trueCor * trueStd
-	truePara.ρ = rand(Normal( 0.2, (0.1)), Cond.nItem)
+	truePara.ρ = rand(Normal( 0., (0.2)), Cond.nItem)
 	#truePara.ρ = rand(Normal( 0.3, (0.1)), Cond.nItem)
 	return truePara 
 end
@@ -233,43 +233,16 @@ function setDataRtIrtCross(Cond, truePara; type="norm")
     μt =  truePara.λ' .- truePara.ζ .- truePara.θ  * (truePara.ρ')
 
     if type == "norm"
-		#trueT = μt .+ rand(Normal(0, 0.5), Cond.nSubj, Cond.nItem)
-        trueT = rand.(Normal.(μt, sqrt.(truePara.σ²t')))
+		trueLogT = μt .+ rand(Normal(0., 0.3), Cond.nSubj, Cond.nItem)
     elseif type == "tail"
-		#trueT = μt .+ rand.(Normal.(0, sqrt.(truePara.σ²t'))) 
-		#trueT = μt .+ sqrt.(truePara.σ²t') .* rand.(TDist(3))	
-		trueT = μt .+ rand(TDist(3), Cond.nSubj, Cond.nItem)
-		#trueT =  rand.(Truncated.(Cauchy.(μt, 1),-6,6))
-		# 對於尾部分配
-		#σ_adjusted = sqrt.(truePara.σ²t' .* π/2)  # 調整Cauchy尺度
-		#trueT = μt .+ rand.(Truncated.(Cauchy.(0, σ_adjusted),-6,6))
-        
-		#trueT = μt .+ rand.(Truncated.(Cauchy.(0, sqrt.(truePara.σ²t')),-6,6))
-        #trueT = μt .+ abs.(μt).*sqrt.(truePara.σ²t').*randn()
-        #trueT = μt .+ 0.5*abs.(μt).*randn()
-
-		# 應該改為：
-		#ν = 4
-		#scaling = sqrt.((ν-2)/ν)  # 調整變異數
-		#trueT = μt .+ sqrt.(truePara.σ²t') .* scaling .* rand.(TDist(ν))
+		trueLogT = μt .+ rand(TDist(2), Cond.nSubj, Cond.nItem)
 
 
     elseif type == "skew"
-		trueT = μt .+ rand.(Gamma.(1, 0.5)) .- 1
-		#trueT = rand.(LogNormal.( log.(μt), sqrt.(truePara.σ²t')))
-        #trueT = μt .+ rand.(Gamma.(sqrt.(truePara.σ²t'), 1)) .- 0.5
-		#trueT = μt .+ rand(Gamma(0.5, 1), Cond.nSubj, Cond.nItem) .- 0.5
-		#trueT = μt .+ rand(Beta(0.5,0.5), Cond.nItem)'
-
-		# 應該改為：
-		#σ_log = 0.8  # 控制偏度大小
-		#noise = rand.(LogNormal.(0, sqrt.(truePara.σ²t')), Cond.nSubj)
-		#trueT = μt .+ noise
+		trueLogT = μt .+ (rand(Gamma(0.5, 1), Cond.nSubj, Cond.nItem) .- 1. )
 		
     end
-    #trueT = clamp.(trueT, 0,6)
-    trueT = exp.(trueT)
-	#trueT = clamp.(trueT, 0, exp(6) )
+    trueT = exp.(trueLogT)
 
 	## collect
 	trueData = InputData(Y=trueY, T=trueT)
@@ -289,19 +262,30 @@ function setTrueParaRtIrtLatent(Cond;
 	λ = [],
 	σ²t = [],
 	trueStdRa=1.,
-	trueStdRt=1.
+	trueStdRt=1.,
+	#type="norm"
 	
 )
 	truePara = InputPara()
 	truePara.a = rand(Truncated.(Normal(1., (0.2)),0,Inf), Cond.nItem)
 	truePara.b = rand(Normal(0., (0.5)), Cond.nItem)
 	truePara.λ = rand(Truncated(Normal(3., (0.2) ), 0, Inf), Cond.nItem)
-	truePara.σ²t = rand(Truncated.(Normal(0.3, (0.5)), 0, Inf), Cond.nItem)
+	
 	trueStd = Diagonal([trueStdRa, trueStdRt])
     trueCor = I(2)
 	truePara.Σp = trueStd * trueCor * trueStd
     trueρ = rand(Truncated(Normal(0,0.5),-1,1))
 	truePara.β = [rand( Normal( 0, (0.5)), Cond.nFeat); trueρ]
+	"""
+	if type == "norm"
+		truePara.σ²t = rand(Truncated(Normal(0., (0.3)), 0, Inf), Cond.nItem)
+	elseif type == "tail"
+		truePara.σ²t = rand(Truncated(TDist(2), 0,Inf), Cond.nItem)
+	elseif type == "skew"
+		truePara.σ²t = rand(Truncated(LogNormal(0., (0.25)), 0,Inf), Cond.nItem)
+	end	
+	"""
+
 	return truePara 
 end
 
@@ -327,30 +311,36 @@ function setDataRtIrtLatent(Cond, truePara; type="norm")
 
 
     ## rt
-    μt = x * truePara.β #zeros(Cond.nSubj) # 
+    #truePara.ζ = x * truePara.β + randn(Cond.nSubj) #zeros(Cond.nSubj) # 
 
-    if type == "norm"
-        #truePara.ζ = μt .+ randn(Cond.nSubj)
-		truePara.ζ =  rand.(Normal.(μt, 0.5))
-    elseif type == "tail"
-
-		truePara.ζ = μt .+ rand(TDist(3), Cond.nSubj)
-        #truePara.ζ = μt .+ rand(Truncated(Cauchy(0, 1),-6,6),Cond.nSubj)
-        #trueT = μt .+ abs.(μt).*sqrt.(truePara.σ²t').*randn()
-        #trueT = μt .+ 0.5*abs.(μt).*randn()
-    elseif type == "skew"
-        truePara.ζ = μt .+ rand(Gamma(1, 0.5), Cond.nSubj) .- 1
-        #truePara.ζ = rand.(LogNormal.(μt, 0.25)) #.- exp.(μt .+ 0.25^2/2)
-    end
-
+	if type == "norm"
+		truePara.ζ = x * truePara.β .+ rand(Normal(0., 0.3), Cond.nSubj)
+	elseif type == "tail"
+		truePara.ζ = x * truePara.β .+ rand(TDist(2), Cond.nSubj)
+	elseif type == "skew"
+		truePara.ζ = x * truePara.β .+ (rand(Gamma(0.5, 1), Cond.nSubj) .- 1. )
+	end	
 
 	## irt
     truePr =  truePara.a' .* (truePara.θ .- truePara.b') 
     trueY = rand.(BernoulliLogit.(truePr))
 
+
 	## rt
     trueμt =  truePara.λ' .- truePara.ζ
-    trueT = rand.(LogNormal.(trueμt, sqrt.(truePara.σ²t')))
+
+	trueLogT = trueμt .+ randn(Cond.nSubj, Cond.nItem)
+	"""
+	if type == "norm"
+		trueLogT = trueμt .+ rand(Normal(0., 0.3), Cond.nSubj, Cond.nItem)
+	elseif type == "tail"
+		trueLogT = trueμt .+ rand(TDist(2), Cond.nSubj, Cond.nItem)
+	elseif type == "skew"
+		trueLogT = trueμt .+ (rand(Gamma(0.5, 1), Cond.nSubj, Cond.nItem) .- 1. )
+	end
+	"""	
+	trueT = exp.(trueLogT)
+
 
 	## collect
 	trueData = InputData(Y=trueY, T=trueT, X=trueX)
@@ -390,7 +380,7 @@ end
 function testingDict(nSubj::Int, nItem::Int , nFeat::Int)
 	data = Dict(
 		"Y" => rand(nSubj, nItem),
-		"" => rand(nSubj, nFeat),
+		"X" => rand(nSubj, nFeat),
 		"T" => randn(nSubj, nItem)
 	
 	)

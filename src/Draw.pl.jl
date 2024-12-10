@@ -254,7 +254,7 @@ end
 """
     drawItemTimeResidual(Cond,Data,Para;δa=1e-10, δb=1e-10) --> σ²t
 """
-function drawItemTimeResidual(Cond,Data,Para;δa=1e-10, δb=1e-10)
+function drawItemTimeResidual(Cond,Data,Para;δa=1e-3, δb=1e-3)
     parA = δa + Cond.nSubj ./2
     parB = δb .+ sum( (Data.logT .- Para.λ' .+ Para.ζ).^2, dims=1) ./2
     σ²t = rand.(InverseGamma.(parA, parB'))
@@ -264,7 +264,7 @@ end
 # ╔═╡ 84e5e58b-02cc-4fd0-8a60-67b393f8b8fe
 """
 """
-function drawItemTimeResidualCross(Cond,Data,Para;δa=0.001, δb=0.001)
+function drawItemTimeResidualCross(Cond,Data,Para;δa=1e-3, δb=1e-3)
     parA = δa + Cond.nSubj/2
     parB = δb .+ sum( (Data.logT .- Para.λ' .+ Para.ζ .+ Para.θ * Para.ρ').^2, dims=1) ./2
     σ²t = rand.(InverseGamma.(parA, parB'))
@@ -275,7 +275,7 @@ end
 # ╔═╡ 982acb19-e7b1-4cd6-a98d-940d1a4c1565
 """
 """
-function drawItemTimeResidualCrossQr(Cond,Data,Para;δa=0.001, δb=0.001)
+function drawItemTimeResidualCrossQr(Cond,Data,Para;δa=1e-3, δb=1e-3)
 	k1Rt = (1 - 2 * Cond.qRt) / (Cond.qRt * (1 - Cond.qRt))
     k2Rt = 2 / (Cond.qRt * (1 - Cond.qRt))
     k1e = k1Rt.*Para.ν
