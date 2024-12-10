@@ -330,15 +330,6 @@ function setDataRtIrtLatent(Cond, truePara; type="norm")
     trueμt =  truePara.λ' .- truePara.ζ
 
 	trueLogT = trueμt .+ randn(Cond.nSubj, Cond.nItem)
-	"""
-	if type == "norm"
-		trueLogT = trueμt .+ rand(Normal(0., 0.3), Cond.nSubj, Cond.nItem)
-	elseif type == "tail"
-		trueLogT = trueμt .+ rand(TDist(2), Cond.nSubj, Cond.nItem)
-	elseif type == "skew"
-		trueLogT = trueμt .+ (rand(Gamma(0.5, 1), Cond.nSubj, Cond.nItem) .- 1. )
-	end
-	"""	
 	trueT = exp.(trueLogT)
 
 
