@@ -1,8 +1,8 @@
 ### A Pluto.jl notebook ###
 # v0.20.3
 
-#using Markdown
-#using InteractiveUtils
+using Markdown
+using InteractiveUtils
 
 # ╔═╡ 1d4a9f51-3db8-4a78-936d-a7f2879cc0a0
 using PlutoUI
@@ -413,35 +413,6 @@ function comparePara(Mcmc; name=:a)
 end
 
 
-# ╔═╡ 8a35299b-8fd9-41d3-8ed1-a88312d1ba43
-"""
-"""
-function checkConvergence(MCMC)
-
-    mcmcRa = MCMC.Post.ra[(MCMC.Cond.nBurnin+1):end, :, :]
-    essRa = Chains(mcmcRa) |> ess_rhat
-
-    mcmcRt = MCMC.Post.rt[(MCMC.Cond.nBurnin+1):end, :, :]
-    essRt = Chains(mcmcRt) |> ess_rhat
-
-    mcmcQr = MCMC.Post.qr[(MCMC.Cond.nBurnin+1):end, :, :]
-    essQr = Chains(mcmcQr) |> ess_rhat
-
-    essLength = length(essRa[:,2]) + length(essRt[:,2]) + count(!isnan, (essQr[:,2]))
-    rhatLength = length(essRa[:,3]) + length(essRt[:,3]) + count(!isnan, vec(essQr[:,3]))
-    essOk = count(essRa[:,2] .> 400) + count(essRt[:,2] .> 400) + count( skipmissing(essQr[:,2] .> 400) )
-    rhatOk = count(essRa[:,3] .< 1.1) + count(essRt[:,3] .< 1.1) + count( skipmissing(essQr[:,3] .< 1.1) )
-
-    Conv = (
-        ess = (essOk / essLength)*100,
-        rhat = (rhatOk / rhatLength)*100,
-        essN = "$(essOk) / $(essLength)",
-        rhatN = "$(rhatOk) / $(rhatLength)"
-        
-    )
-    return Conv
-end
-
 # ╔═╡ 95258e82-f774-43c3-8056-62c935512a7c
 
 ## Start a one-condition Simulation Study!
@@ -494,6 +465,35 @@ function runSimulation(Cond, truePara; Para=(:a, :b, :λ, :σ²t), funcData=setD
     return Run
 end
 
+# ╔═╡ 8a35299b-8fd9-41d3-8ed1-a88312d1ba43
+"""
+"""
+function checkConvergence(MCMC)
+
+    mcmcRa = MCMC.Post.ra[(MCMC.Cond.nBurnin+1):end, :, :]
+    essRa = Chains(mcmcRa) |> ess_rhat
+
+    mcmcRt = MCMC.Post.rt[(MCMC.Cond.nBurnin+1):end, :, :]
+    essRt = Chains(mcmcRt) |> ess_rhat
+
+    mcmcQr = MCMC.Post.qr[(MCMC.Cond.nBurnin+1):end, :, :]
+    essQr = Chains(mcmcQr) |> ess_rhat
+
+    essLength = length(essRa[:,2]) + length(essRt[:,2]) + count(!isnan, (essQr[:,2]))
+    rhatLength = length(essRa[:,3]) + length(essRt[:,3]) + count(!isnan, vec(essQr[:,3]))
+    essOk = count(essRa[:,2] .> 400) + count(essRt[:,2] .> 400) + count( skipmissing(essQr[:,2] .> 400) )
+    rhatOk = count(essRa[:,3] .< 1.1) + count(essRt[:,3] .< 1.1) + count( skipmissing(essQr[:,3] .< 1.1) )
+
+    Conv = (
+        ess = (essOk / essLength)*100,
+        rhat = (rhatOk / rhatLength)*100,
+        essN = "$(essOk) / $(essLength)",
+        rhatN = "$(rhatOk) / $(rhatLength)"
+        
+    )
+    return Conv
+end
+
 # ╔═╡ 71411fa8-09a6-4a51-8640-1a14e5f2e7d5
 """
 """
@@ -515,35 +515,7 @@ function getMetrics(object; par=:a)
 end
 
 # ╔═╡ aa3b6d67-f28a-443d-8951-fea2ee3bb368
-"""
-"""
-function getMetrics2(object; par=:a)
-    vectorTrue = object[:True][Symbol(par)]
-    vectorEsti = Array{Any}(undef, length(vectorTrue), 100)
-    for i in 1:100
-        vectorEsti[:,i] = object[i][Symbol(par)]
-    end
 
-    Metrics = (
-        relativeBias=mean( (vectorEsti .- vectorTrue) ./ (vectorTrue) ),
-        normalizedRmse=sqrt(mean((vectorEsti .- vectorTrue).^2)) ./ (maximum(vectorEsti) - minimum(vectorEsti)),
-        Corr=mean(cor(vectorEsti, vectorTrue))
-    )
-
-    return Metrics
-end
-
-# ╔═╡ a124803e-4e1c-4c4f-848c-cda6d2e1aa15
-begin
-	round_value(x::Number, digits::Int) = round(x, digits=digits)
-# 對 NamedTuple 進行四捨五入的函數
-function getRound3(nt::NamedTuple; digits=3)
-    # 使用 map 直接對值進行處理
-    values_rounded = map(v -> round_value(v, digits), values(nt))
-    # 使用原始的鍵和新的值構建 NamedTuple
-    NamedTuple{keys(nt)}(values_rounded)
-end
-end
 
 # ╔═╡ 14a223bc-4419-4773-94b8-82aef171c285
 md"""
@@ -863,6 +835,7 @@ version = "1.10.0"
 
 [[deps.Statistics]]
 deps = ["LinearAlgebra", "SparseArrays"]
+git-tree-sha1 = "ae3bb1eb3bba077cd276bc5cfc337cc65c3075c0"
 uuid = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 version = "1.10.0"
 
@@ -947,7 +920,6 @@ version = "17.4.0+2"
 # ╠═8a35299b-8fd9-41d3-8ed1-a88312d1ba43
 # ╠═71411fa8-09a6-4a51-8640-1a14e5f2e7d5
 # ╠═aa3b6d67-f28a-443d-8951-fea2ee3bb368
-# ╠═a124803e-4e1c-4c4f-848c-cda6d2e1aa15
 # ╠═14a223bc-4419-4773-94b8-82aef171c285
 # ╠═b8a44521-8622-4b83-9518-a2da3107d91e
 # ╠═cf9fd679-b387-476f-8401-46082d4f6c93

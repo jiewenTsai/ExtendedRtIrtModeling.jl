@@ -51,6 +51,8 @@ export
     getCorr,
     getDic,
     getMetrics,
+    getMetrics2,
+    getRound3,
 	#evaluate,
 
 	## sample!
