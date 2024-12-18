@@ -307,10 +307,10 @@ function drawQrWeightsCrossQr(Cond,Data,Para)
 	parA =  abs.(Data.logT .- Para.λ' .+ Para.ζ .+ Para.θ * Para.ρ') ./ sqrt.(Para.σ²t' .* k2Rt )
 	parB =  sqrt.(2 * k2Rt .+ k1Rt.^2) ./ sqrt.(Para.σ²t' .* k2Rt)
 
-    parA = clamp.(parA, 1e-10, Inf)
-    parB = clamp.(parB, 1e-10, Inf)
+    μ = parB ./ parA
+    μ = clamp.(μ, 1e-10, Inf)  # 使用比 1e-10 大一點的值
+    ν = 1 ./ rand.(InverseGaussian.(μ, parB.^2))
 	
-    ν =  1 ./ rand.(InverseGaussian.( (parB ./ parA), parB.^2  ))
 	#ν = 1 ./ rand.(InverseGaussian.( parMu, parLam  ))
 	#ν = rand.(ge.GeneralizedInverseGaussian.(0.5,parB,parA ))
 	#ν = 1 ./ rand.(ge.GeneralizedInverseGaussian.(-0.5,parA,parB ))
@@ -330,10 +330,10 @@ function drawQrWeightsLatentQr(Cond,Data,Para)
 	parA =  abs.(Para.ζ .- x * Para.β) ./ sqrt.(Para.Σp[2,2] .* k2Rt)
 	parB =  sqrt.(2 * k2Rt .+ k1Rt.^2) ./ sqrt.(Para.Σp[2,2] .* k2Rt) 
 
-    parA = clamp.(parA, 1e-10, Inf)
-    parB = clamp.(parB, 1e-10, Inf)
+    μ = parB ./ parA
+    μ = clamp.(μ, 1e-10, Inf)  # 使用比 1e-10 大一點的值
+    ν = 1 ./ rand.(InverseGaussian.(μ, parB.^2))
 
-	ν =  1 ./ rand.(InverseGaussian.( (parB ./ parA), parB.^2  ))
     #ν =  1 ./ rand.(InverseGaussian.(parMu  , parLam ))
 	#ν = rand.(ge.GeneralizedInverseGaussian.(0.5,parB,parA))
 	#ν = 1 ./ rand.(ge.GeneralizedInverseGaussian.(-0.5,parA,parB ))
