@@ -237,7 +237,7 @@ function setDataRtIrtCross(Cond, truePara; type="norm")
     if type == "norm"
 		trueLogT = μt .+ rand(Normal(0., 0.3), Cond.nSubj, Cond.nItem)
     elseif type == "tail"
-		trueLogT = μt .+ rand(TDist(2), Cond.nSubj, Cond.nItem)
+		trueLogT = μt .+ rand(TDist(5), Cond.nSubj, Cond.nItem)
 
 
     elseif type == "skew"
@@ -318,7 +318,7 @@ function setDataRtIrtLatent(Cond, truePara; type="norm")
 	if type == "norm"
 		truePara.ζ = x * truePara.β .+ rand(Normal(0., 0.3), Cond.nSubj)
 	elseif type == "tail"
-		truePara.ζ = x * truePara.β .+ rand(TDist(2), Cond.nSubj)
+		truePara.ζ = x * truePara.β .+ rand(TDist(5), Cond.nSubj)
 	elseif type == "skew"
 		truePara.ζ = x * truePara.β .+ (rand(Gamma(0.5, 1), Cond.nSubj) .- 1. )
 	end	
