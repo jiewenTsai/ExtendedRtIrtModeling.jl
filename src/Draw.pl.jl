@@ -539,7 +539,7 @@ end
     drawSubjCovariance(;θ, τ, nSubj)
     (New)
 """
-function drawSubjCovarianceCross(Cond, Data, Para, cov2one;  δa = 1e-10, δb = 1e-10)
+function drawSubjCovarianceCross(Cond, Data, Para, cov2one;  δa = 1e-3, δb = 1e-3)
     parA = δa + Cond.nSubj/2
     #parB = δb .+ sum(quantileCheck.(Para.ζ .- x * Para.β, Cond.qRt))/2
     parB = δb .+ sum((Para.ζ).^2)/2
@@ -560,7 +560,7 @@ end
 """
     drawSubjCovarianceLatentQr(Cond, Data, Para) --> Σp
 """
-function drawSubjCovarianceLatent(Cond, Data, Para, cov2one; δa = 1e-10, δb = 1e-10)
+function drawSubjCovarianceLatent(Cond, Data, Para, cov2one; δa = 1e-3, δb = 1e-3)
     x = [ones(Cond.nSubj) Data.X Para.θ]
 
     parA = δa + Cond.nSubj/2
@@ -582,7 +582,7 @@ end
 """
     drawSubjCovarianceLatentQr(Cond, Data, Para) --> Σp
 """
-function drawSubjCovarianceLatentQr(Cond, Data, Para, cov2one; δa = 1e-10, δb = 1e-10)
+function drawSubjCovarianceLatentQr(Cond, Data, Para, cov2one; δa = 1e-3, δb = 1e-3)
     x = [ones(Cond.nSubj) Data.X Para.θ]
     k1Rt = (1 - 2 * Cond.qRt) / (Cond.qRt * (1 - Cond.qRt))
     k2Rt = 2 / (Cond.qRt * (1 - Cond.qRt))
@@ -591,7 +591,7 @@ function drawSubjCovarianceLatentQr(Cond, Data, Para, cov2one; δa = 1e-10, δb 
 
 	
     parA = δa + Cond.nSubj*3 /2 
-	parB = δb .+ sum((Para.ζ .- x * Para.β .- k1Rt * Para.ν).^2  / (2*k2e)) .+ sum(Para.ν)
+	parB = δb .+ sum((Para.ζ .- x * Para.β .- k1e).^2  / (2*k2e)) .+ sum(Para.ν)
 
 	s =  rand(InverseGamma(parA, parB))
     Σp = [1. 0.; 0. s]
