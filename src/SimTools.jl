@@ -498,10 +498,18 @@ end
 """
 """
 function getMetrics(object; par=:a)
-    vectorTrue = object[:True][Symbol(par)]
-    vectorEsti = Array{Any}(undef, length(vectorTrue), 100)
-    for i in 1:100
-        vectorEsti[:,i] = object[i][Symbol(par)]
+    if par == (:β)
+        vectorTrue = object[:True][Symbol(par)]
+        vectorEsti = Array{Any}(undef, length(vectorTrue), 100)
+        for i in 1:100
+            vectorEsti[:,i] = object[i][Symbol(par)][2:end]
+        end 
+    else
+        vectorTrue = object[:True][Symbol(par)]
+        vectorEsti = Array{Any}(undef, length(vectorTrue), 100)
+        for i in 1:100
+            vectorEsti[:,i] = object[i][Symbol(par)]
+        end
     end
 
     Metrics = (
@@ -518,10 +526,18 @@ end
 """
 """
 function getMetrics2(object; par=:a)
-    vectorTrue = object[:True][Symbol(par)]
-    vectorEsti = Array{Any}(undef, length(vectorTrue), 100)
-    for i in 1:100
-        vectorEsti[:,i] = object[i][Symbol(par)]
+    if par == (:β)
+        vectorTrue = object[:True][Symbol(par)]
+        vectorEsti = Array{Any}(undef, length(vectorTrue), 100)
+        for i in 1:100
+            vectorEsti[:,i] = object[i][Symbol(par)][2:end]
+        end 
+    else
+        vectorTrue = object[:True][Symbol(par)]
+        vectorEsti = Array{Any}(undef, length(vectorTrue), 100)
+        for i in 1:100
+            vectorEsti[:,i] = object[i][Symbol(par)]
+        end
     end
 
     Metrics = (
