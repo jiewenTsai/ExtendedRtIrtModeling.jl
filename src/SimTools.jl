@@ -384,27 +384,27 @@ end
 # ╔═╡ d792cfdb-503f-4986-a62d-02338db36ac4
 
 """
-	comparePara(Mcmc; name=:a)
+	comparePara(Mcmc; par=:a)
 """
-function comparePara(Mcmc; name=:a)
+function comparePara(Mcmc; par=:a)
 
-    if name==:β
-        True = getfield(Mcmc.truePara, Symbol(name))
-        Esti = vec(getfield(Mcmc.Post.mean, Symbol(name))[2:end,:])
+    if par==:β
+        True = getfield(Mcmc.truePara, Symbol(par))
+        Esti = vec(getfield(Mcmc.Post.mean, Symbol(par))[2:end,:])
     else
-        True = getfield(Mcmc.truePara, Symbol(name))
-        Esti = getfield(Mcmc.Post.mean, Symbol(name))
+        True = getfield(Mcmc.truePara, Symbol(par))
+        Esti = getfield(Mcmc.Post.mean, Symbol(par))
     end
     Diff = abs.(Esti .- True)
     
-    names = ["Esti", "True", "|Diff|"]
+    par = ["Esti", "True", "|Diff|"]
     values = [Esti True Diff]
     values = round.(values, digits=3)
 
 
     # print title
-    println(join(names, "\t"))
-    println(join(fill("=======", length(names)), "\t"))
+    println(join(par, "\t"))
+    println(join(fill("=======", length(par)), "\t"))
     # print data
     for row in 1:size(values, 1)     
         rounded_row = round.(values[row,:], digits=3)
