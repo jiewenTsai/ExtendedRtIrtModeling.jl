@@ -253,11 +253,12 @@ function getLogLikelihoodRtIrtLatentQr(Cond,Data; P=Para)
     pr = P.a' .* (P.θ .- P.b')
     μt = P.λ' .- P.ζ
     
-	#Σp = reshape(P.Σp,2,2)
+	Σp = reshape(P.Σp,2,2)
 	μOfζ = x * P.β .+ k1e 
 
 	#sum([logpdf.(Normal.(μOfζ[i,:], sqrt.(Σp[2,2] .* k2e[i,:])), P.ζ[i,:]) for i in 1:Cond.nSubj])
-    logPdf = [sum(logpdf.(BernoulliLogit.(pr), Data.Y)) sum(logpdf.(Normal.(μt, sqrt.(P.σ²t')), Data.logT)) sum(logpdf.(Normal.(μOfζ, sqrt.(1)), P.ζ)) ] 
+    #logPdf = [sum(logpdf.(BernoulliLogit.(pr), Data.Y)) sum(logpdf.(Normal.(μt, sqrt.(P.σ²t')), Data.logT)) sum(logpdf.(Normal.(μOfζ, sqrt.(1)), P.ζ)) ] 
+	logPdf = [sum(logpdf.(BernoulliLogit.(pr), Data.Y)) sum(logpdf.(Normal.(μt, sqrt.(P.σ²t')), Data.logT)) sum(logpdf.(Normal.(μOfζ, sqrt.(Σp[2,2]*k2e)), P.ζ)) ] 
 
     return sum(logPdf)
 end
