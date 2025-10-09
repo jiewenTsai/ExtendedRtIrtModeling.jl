@@ -1,10 +1,87 @@
-# Go to https://citation-file-format.github.io/cff-initializer-javascript/#/ to finish this
 cff-version: 1.2.0
-title: ExtendedRtIrtModeling.jl
-message: >-
-  If you use this software, please cite it using the
-  metadata from this file.
+message: "If you use this software, please cite it as below."
 type: software
+title: "ExtendedRtIrtModeling.jl: Extended RT-IRT Modeling with Bayesian Quantile Regression"
+version: 1.0.0
+date-released: 2025-02-01
 authors:
-  - given-names: Jie-Wen Tsai 
-    email: tsai.jiewen@gmail.com
+  - family-names: Tsai
+    given-names: Jie-Wen
+    orcid: "https://orcid.org/0000-0002-8949-3635"  # Replace with your ORCID
+    affiliation: "National Chengchi University"
+    email: tsai.jiewen@gmail.com  # Replace with your email
+repository-code: "https://github.com/jiewenTsai/ExtendedRtIrtModeling.jl"
+url: "https://github.com/jiewenTsai/ExtendedRtIrtModeling.jl"
+license: GPL-3.0-or-later
+keywords:
+  - item response theory
+  - response time modeling
+  - Bayesian statistics
+  - Gibbs sampling
+  - quantile regression
+  - educational measurement
+  - psychometrics
+  - Julia
+abstract: >
+  ExtendedRtIrtModeling.jl is a Julia package for joint modeling of 
+  item responses and response times in educational and psychological 
+  testing. It implements three major extensions to the RT-IRT framework: 
+  (1) Pólya-Gamma Gibbs sampler for logistic RT-IRT models, 
+  (2) Bayesian quantile regression for latent regression models, and 
+  (3) Bayesian quantile regression for cross-relation models. The 
+  package provides efficient Gibbs sampling algorithms and supports 
+  both Julia and R interfaces.
+references:
+  - type: thesis
+    authors:
+      - family-names: Tsai
+        given-names: Jie-Wen
+    title: "Extensions and Applications of Joint Modeling for Responses and Response Times"
+    year: 2025
+    institution:
+      name: "National Chengchi University"
+    thesis-type: "Doctoral dissertation"
+  - type: article
+    authors:
+      - family-names: Polson
+        given-names: Nicholas G.
+      - family-names: Scott
+        given-names: James G.
+      - family-names: Windle
+        given-names: Jesse
+    title: "Bayesian inference for logistic models using Pólya–Gamma latent variables"
+    journal: "Journal of the American Statistical Association"
+    year: 2013
+    volume: 108
+    issue: 504
+    start: 1339
+    end: 1349
+    doi: "10.1080/01621459.2013.829001"
+  - type: article
+    authors:
+      - family-names: Bolsinova
+        given-names: Maria
+      - family-names: Tijmstra
+        given-names: Jesper
+    title: "Improving precision of ability estimation: Getting more from response times"
+    journal: "British Journal of Mathematical and Statistical Psychology"
+    year: 2018
+    volume: 71
+    issue: 1
+    start: 13
+    end: 38
+    doi: "10.1002/bmsp.12076"
+  - type: article
+    authors:
+      - family-names: Yu
+        given-names: Keming
+      - family-names: Moyeed
+        given-names: Rana A.
+    title: "Bayesian quantile regression"
+    journal: "Statistics & Probability Letters"
+    year: 2001
+    volume: 54
+    issue: 4
+    start: 437
+    end: 447
+    doi: "10.1016/S0167-7152(01)00124-9"
